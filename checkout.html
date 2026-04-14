@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout – Natural Sanitation</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Stripe.js — must load before any Stripe calls -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- ============================================================
+  TRACKING — REPLACE PLACEHOLDERS BEFORE GOING LIVE
+  ============================================================ -->
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','YOUR_PIXEL_ID');
+    fbq('track','PageView');
+  </script>
+  <!-- HYROS_SCRIPT_TAG_HERE -->
+  <!-- ============================================================ -->
+
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --blue:#1e4db7;
+      --blue-hover:#163a8f;
+      --blue-light:#eef3ff;
+      --orange:#e8650a;
+      --bg:#f7f8fa;
+      --surface:#ffffff;
+      --charcoal:#1c1c2e;
+      --navy:#1a2d4f;
+      --muted:#5a6478;
+      --border:#dde3ec;
+      --green:#16a34a;
+      --green-light:#f0fdf4;
+      --r:10px;
+      --shadow:0 2px 12px rgba(26,45,79,.07);
+    }
+    html{-webkit-text-size-adjust:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      background:var(--bg);
+      color:var(--charcoal);
+      font-size:16px;
+      line-height:1.55;
+      min-height:100vh;
+    }
+
+    /* ── LAYOUT ── */
+    .checkout-wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 60px;
+      display:grid;
+      grid-template-columns:1fr 340px;
+      gap:24px;
+      align-items:start;
+    }
+    @media(max-width:720px){
+      .checkout-wrap{grid-template-columns:1fr}
+    }
+
+    /* ── ORDER SUMMARY (right column, sticky) ── */
+    .order-summary{
+      background:var(--navy);
+      border-radius:14px;
+      padding:24px;
+      color:#e2e8f0;
+      position:sticky;
+      top:24px;
+    }
+    @media(max-width:720px){
+      .order-summary{order:-1;position:static}
+    }
+    .summary-logo{
+      font-size:18px;
+      font-weight:900;
+      color:#fff;
+      margin-bottom:4px;
+    }
+    .summary-logo span{color:var(--orange)}
+    .summary-tagline{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;margin-bottom:20px}
+    .summary-divider{border:none;border-top:1px solid #334155;margin:16px 0}
+    .summary-plan-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;margin-bottom:4px}
+    .summary-price{font-size:36px;font-weight:900;color:#fff;line-height:1}
+    .summary-period{font-size:14px;color:#64748b;margin-bottom:4px}
+    .summary-bins{font-size:13px;color:#94a3b8;margin-bottom:16px}
+    .summary-split{
+      background:rgba(255,255,255,.05);
+      border:1px solid #334155;
+      border-radius:8px;
+      padding:12px 14px;
+      font-size:13px;
+      color:#94a3b8;
+      line-height:1.7;
+      margin-bottom:16px;
+    }
+    .summary-split strong{color:#e2e8f0}
+    .summary-includes{list-style:none;font-size:13px;color:#94a3b8;line-height:2}
+    .summary-includes li::before{content:'✓ ';color:var(--green)}
+    .summary-trust{
+      margin-top:20px;
+      font-size:12px;
+      color:#475569;
+      line-height:1.7;
+    }
+    .summary-trust strong{color:#64748b}
+
+    /* ── FORM CARD ── */
+    .form-card{
+      background:var(--surface);
+      border-radius:14px;
+      padding:28px 24px;
+      box-shadow:var(--shadow);
+      border:1px solid var(--border);
+    }
+    .form-title{
+      font-size:20px;
+      font-weight:800;
+      color:var(--navy);
+      margin-bottom:6px;
+    }
+    .form-subtitle{font-size:14px;color:var(--muted);margin-bottom:24px}
+
+    /* Apple/Google Pay */
+    .express-pay-section{margin-bottom:20px}
+    .express-pay-label{
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:10px;
+    }
+    #payment-request-button{min-height:44px}
+    .express-divider{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:16px 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .express-divider::before,.express-divider::after{
+      content:'';flex:1;border-top:1px solid var(--border);
+    }
+    /* Hide express section if not available */
+    .express-pay-section.hidden{display:none}
+
+    /* Form fields */
+    .field-group{margin-bottom:16px}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:480px){.field-row{grid-template-columns:1fr}}
+    label{
+      display:block;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.5px;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:5px;
+    }
+    input[type=text],input[type=email],input[type=tel]{
+      width:100%;
+      padding:11px 14px;
+      border:2px solid var(--border);
+      border-radius:8px;
+      font-size:15px;
+      font-family:inherit;
+      color:var(--charcoal);
+      outline:none;
+      transition:border-color .15s;
+      background:#fff;
+    }
+    input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{
+      border-color:var(--blue);
+    }
+    input.error{border-color:#dc2626}
+
+    /* Stripe Elements container */
+    .stripe-field{
+      padding:11px 14px;
+      border:2px solid var(--border);
+      border-radius:8px;
+      background:#fff;
+      transition:border-color .15s;
+    }
+    .stripe-field.StripeElement--focus{border-color:var(--blue)}
+    .stripe-field.StripeElement--invalid{border-color:#dc2626}
+
+    /* Card row */
+    .card-row{display:grid;grid-template-columns:1fr 100px 80px;gap:10px}
+    @media(max-width:480px){.card-row{grid-template-columns:1fr}}
+
+    /* Error message */
+    .field-error{font-size:12px;color:#dc2626;margin-top:4px;min-height:16px}
+
+    /* SMS consent */
+    .sms-consent{
+      background:#f9fafb;
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px 14px;
+      margin-bottom:16px;
+    }
+    .sms-consent-row{display:flex;gap:10px;align-items:flex-start}
+    .sms-consent input[type=checkbox]{
+      width:16px;height:16px;
+      margin-top:2px;
+      flex-shrink:0;
+      accent-color:var(--blue);
+    }
+    .sms-consent-text{font-size:12px;color:var(--muted);line-height:1.5}
+    .sms-consent-text a{color:var(--blue);text-decoration:underline}
+
+    /* Submit button */
+    .submit-btn{
+      display:block;
+      width:100%;
+      padding:16px;
+      background:var(--blue);
+      color:#fff;
+      font-size:17px;
+      font-weight:800;
+      border:none;
+      border-radius:var(--r);
+      cursor:pointer;
+      transition:background .15s,opacity .15s;
+      margin-bottom:12px;
+    }
+    .submit-btn:hover{background:var(--blue-hover)}
+    .submit-btn:disabled{opacity:.5;cursor:not-allowed}
+    .submit-btn.loading{opacity:.7}
+
+    /* Trust row */
+    .trust-row{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+      flex-wrap:wrap;
+    }
+
+    /* Success state */
+    .success-screen{
+      display:none;
+      text-align:center;
+      padding:40px 20px;
+    }
+    .success-screen.show{display:block}
+    .success-icon{
+      width:64px;height:64px;
+      border-radius:50%;
+      background:var(--green-light);
+      border:2px solid var(--green);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto 16px;
+      font-size:28px;
+    }
+    .success-screen h2{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px}
+    .success-screen p{font-size:15px;color:var(--muted);max-width:380px;margin:0 auto}
+
+    /* Processing overlay */
+    .processing-overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,.85);
+      z-index:999;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:12px;
+      font-size:16px;
+      font-weight:700;
+      color:var(--navy);
+    }
+    .processing-overlay.show{display:flex}
+    .spinner{
+      width:36px;height:36px;
+      border:3px solid var(--border);
+      border-top-color:var(--blue);
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Back link */
+    .back-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:13px;
+      color:var(--muted);
+      text-decoration:none;
+      margin-bottom:20px;
+      padding:6px 0;
+    }
+    .back-link:hover{color:var(--blue)}
+  </style>
+</head>
+<body>
+
+<div class="checkout-wrap">
+
+  <!-- LEFT: FORM -->
+  <div>
+    <a class="back-link" href="/" onclick="history.back();return false;">← Back to plans</a>
+
+    <div class="form-card" id="form-card">
+
+      <div class="form-title">Complete your order</div>
+      <div class="form-subtitle">Secure checkout · Billed via Stripe · 256-bit SSL</div>
+
+      <!-- Apple Pay / Google Pay -->
+      <div class="express-pay-section" id="express-pay-section">
+        <div class="express-pay-label">Pay instantly with</div>
+        <div id="payment-request-button"></div>
+        <div class="express-divider">or pay with card</div>
+      </div>
+
+      <form id="checkout-form" novalidate>
+
+        <!-- Name -->
+        <div class="field-row field-group">
+          <div>
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" placeholder="Jane" autocomplete="given-name" required />
+            <div class="field-error" id="err-first-name"></div>
+          </div>
+          <div>
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" placeholder="Smith" autocomplete="family-name" required />
+            <div class="field-error" id="err-last-name"></div>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="jane@email.com" autocomplete="email" required />
+          <div class="field-error" id="err-email"></div>
+        </div>
+
+        <!-- Phone -->
+        <div class="field-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" placeholder="(248) 555-0100" autocomplete="tel" required />
+          <div class="field-error" id="err-phone"></div>
+        </div>
+
+        <!-- Address -->
+        <div class="field-group">
+          <label for="address">Service Address</label>
+          <input type="text" id="address" placeholder="123 Main St, Troy, MI 48084" autocomplete="street-address" required />
+          <div class="field-error" id="err-address"></div>
+        </div>
+
+        <!-- Card -->
+        <div class="field-group">
+          <label>Card Number</label>
+          <div class="stripe-field" id="card-number-element"></div>
+          <div class="field-error" id="err-card-number"></div>
+        </div>
+        <div class="card-row field-group">
+          <div>
+            <label>Expiry</label>
+            <div class="stripe-field" id="card-expiry-element"></div>
+            <div class="field-error" id="err-card-expiry"></div>
+          </div>
+          <div>
+            <label>CVC</label>
+            <div class="stripe-field" id="card-cvc-element"></div>
+            <div class="field-error" id="err-card-cvc"></div>
+          </div>
+          <div>
+            <label>ZIP</label>
+            <input type="text" id="billing-zip" placeholder="48084" maxlength="5" inputmode="numeric" autocomplete="postal-code" />
+          </div>
+        </div>
+        <div class="field-error" id="err-card-general"></div>
+
+        <!-- SMS Consent -->
+        <div class="sms-consent field-group">
+          <div class="sms-consent-row">
+            <input type="checkbox" id="sms-consent" checked />
+            <div class="sms-consent-text">
+              I agree to receive service updates, appointment reminders, and before/after photos via SMS from Natural Sanitation. Message and data rates may apply. Reply STOP to opt out. <a href="#">Privacy Policy</a>.
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          Lock In My Spot →
+        </button>
+
+        <div class="trust-row">
+          🔒 &nbsp;Billed via Stripe &nbsp;·&nbsp; We never see your full card number &nbsp;·&nbsp; No contract &nbsp;·&nbsp; Cancel any time
+        </div>
+
+      </form>
+
+      <!-- Success -->
+      <div class="success-screen" id="success-screen">
+        <div class="success-icon">✓</div>
+        <h2>You're on the route.</h2>
+        <p>Check your phone — we'll text you before your first clean with a confirmation and arrival window. Before and after photos after every visit.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: ORDER SUMMARY -->
+  <div class="order-summary" id="order-summary">
+    <div class="summary-logo">Natural Sanitation<span>.</span></div>
+    <div class="summary-tagline">Garbage Bin Steam Cleaning</div>
+    <hr class="summary-divider" />
+    <div class="summary-plan-name" id="s-plan-name">Annual Plan</div>
+    <div class="summary-price" id="s-price">$250</div>
+    <div class="summary-period" id="s-period">per year</div>
+    <div class="summary-bins" id="s-bins">2 bins · Oakland &amp; Macomb County</div>
+    <div class="summary-split" id="s-split">
+      <strong>$125 today</strong> · $125 in 30 days<br>
+      No contract · Cancel any time
+    </div>
+    <hr class="summary-divider" />
+    <ul class="summary-includes">
+      <li>9 cleanings March – November</li>
+      <li>400° pressurized steam</li>
+      <li>Eco-friendly rodent repellent</li>
+      <li>Before &amp; after photos texted</li>
+      <li>All dirty water removed on-site</li>
+      <li>Curbside — no need to be home</li>
+    </ul>
+    <div class="summary-trust">
+      <strong>127,000+ bins cleaned</strong><br>
+      250+ five-star Google reviews<br>
+      6+ years serving Metro Detroit
+    </div>
+  </div>
+
+</div>
+
+<!-- Processing overlay -->
+<div class="processing-overlay" id="processing-overlay">
+  <div class="spinner"></div>
+  Processing your order...
+</div>
+
+<script>
+/*
+  ============================================================
+  STRIPE CONFIGURATION
+  Replace YOUR_STRIPE_PUBLISHABLE_KEY with your real key.
+  Replace the PRICE_IDS with your Stripe Price IDs for each plan.
+  ============================================================
+*/
+const STRIPE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY';
+
+const PRICE_IDS = {
+  annual_1bin:    'price_REPLACE_annual_1bin',
+  annual_2bin:    'price_REPLACE_annual_2bin',
+  annual_3bin:    'price_REPLACE_annual_3bin',
+  annual_4bin:    'price_REPLACE_annual_4bin',
+  quarterly_any:  'price_REPLACE_quarterly',
+  monthly_1bin:   'price_REPLACE_monthly_1bin',
+  monthly_2bin:   'price_REPLACE_monthly_2bin',
+  monthly_3bin:   'price_REPLACE_monthly_3bin',
+  monthly_4bin:   'price_REPLACE_monthly_4bin',
+};
+
+/*
+  GHL webhook — fires on successful payment to create contact in pipeline.
+  Replace GHL_WEBHOOK_URL with your actual webhook URL.
+*/
+const GHL_WEBHOOK_URL = 'GHL_WEBHOOK_URL';
+
+/* ── READ URL PARAMS ── */
+const params = new URLSearchParams(window.location.search);
+const selectedPlan = params.get('plan') || 'annual';
+const selectedBins = parseInt(params.get('bins') || '2', 10);
+const selectedPrice = parseInt(params.get('price') || '250', 10);
+
+/* ── POPULATE ORDER SUMMARY ── */
+const planNames = { annual:'Annual Plan', quarterly:'Quarterly Plan', monthly:'Monthly Plan' };
+const periods   = { annual:'per year', quarterly:'per quarter', monthly:'per month' };
+const splits    = {
+  annual:    '<strong>$'+Math.ceil(selectedPrice/2)+' today</strong> · $'+Math.floor(selectedPrice/2)+' in 30 days<br>No contract · Cancel any time',
+  quarterly: 'Billed every 3 months<br>No contract · Cancel any time',
+  monthly:   'Billed monthly<br>No contract · Cancel any time'
+};
+
+document.getElementById('s-plan-name').textContent = planNames[selectedPlan] || 'Annual Plan';
+document.getElementById('s-price').textContent = '$'+selectedPrice;
+document.getElementById('s-period').textContent = periods[selectedPlan] || 'per year';
+document.getElementById('s-bins').textContent = selectedBins+' bin'+(selectedBins>1?'s':'')+' · Oakland & Macomb County';
+document.getElementById('s-split').innerHTML = splits[selectedPlan] || splits.annual;
+
+/* Update submit button text */
+document.getElementById('submit-btn').textContent =
+  'Pay $'+selectedPrice+' — Lock In My Spot →';
+
+/* ── STRIPE INIT ── */
+const stripe = Stripe(STRIPE_KEY);
+const elements = stripe.elements({
+  fonts:[{ cssSrc:'https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap' }]
+});
+
+const style = {
+  base:{
+    fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+    fontSize:'15px',
+    color:'#1c1c2e',
+    '::placeholder':{ color:'#9ca3af' }
+  },
+  invalid:{ color:'#dc2626' }
+};
+
+const cardNumber  = elements.create('cardNumber',  { style, showIcon:true });
+const cardExpiry  = elements.create('cardExpiry',  { style });
+const cardCvc     = elements.create('cardCvc',     { style });
+
+cardNumber.mount('#card-number-element');
+cardExpiry.mount('#card-expiry-element');
+cardCvc.mount('#card-cvc-element');
+
+/* AddPaymentInfo on card focus */
+cardNumber.on('focus', function() {
+  if (typeof fbq !== 'undefined') fbq('track','AddPaymentInfo');
+});
+
+/* Card errors */
+cardNumber.on('change', e => showCardError('card-number', e.error));
+cardExpiry.on('change', e => showCardError('card-expiry', e.error));
+cardCvc.on('change',    e => showCardError('card-cvc',    e.error));
+
+function showCardError(field, error) {
+  document.getElementById('err-'+field).textContent = error ? error.message : '';
+}
+
+/* ── APPLE PAY / GOOGLE PAY ── */
+const paymentRequest = stripe.paymentRequest({
+  country: 'US',
+  currency: 'usd',
+  total: {
+    label: planNames[selectedPlan]+' — Natural Sanitation',
+    amount: selectedPrice * 100
+  },
+  requestPayerName: true,
+  requestPayerEmail: true,
+  requestPayerPhone: true
+});
+
+const prButton = elements.create('paymentRequestButton', {
+  paymentRequest,
+  style:{ paymentRequestButton:{ type:'default', theme:'dark', height:'48px' } }
+});
+
+paymentRequest.canMakePayment().then(result => {
+  if (result) {
+    prButton.mount('#payment-request-button');
+  } else {
+    document.getElementById('express-pay-section').classList.add('hidden');
+  }
+});
+
+paymentRequest.on('paymentmethod', async (ev) => {
+  showProcessing(true);
+  try {
+    const res = await fetch('/create-payment-intent', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ plan:selectedPlan, bins:selectedBins, price:selectedPrice })
+    });
+    const { clientSecret } = await res.json();
+    const { error, paymentIntent } = await stripe.confirmCardPayment(
+      clientSecret, { payment_method: ev.paymentMethod.id }, { handleActions:false }
+    );
+    if (error) { ev.complete('fail'); showProcessing(false); return; }
+    ev.complete('success');
+    if (paymentIntent.status === 'requires_action') {
+      await stripe.confirmCardPayment(clientSecret);
+    }
+    onSuccess({ name: ev.payerName, email: ev.payerEmail, phone: ev.payerPhone });
+  } catch(e) { ev.complete('fail'); showProcessing(false); }
+});
+
+/* ── FORM SUBMIT ── */
+document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  clearErrors();
+
+  const firstName = document.getElementById('first-name').value.trim();
+  const lastName  = document.getElementById('last-name').value.trim();
+  const email     = document.getElementById('email').value.trim();
+  const phone     = document.getElementById('phone').value.trim();
+  const address   = document.getElementById('address').value.trim();
+  const zip       = document.getElementById('billing-zip').value.trim();
+
+  let valid = true;
+  if (!firstName) { showError('first-name','Required'); valid=false; }
+  if (!lastName)  { showError('last-name','Required'); valid=false; }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) { showError('email','Enter a valid email'); valid=false; }
+  if (!phone)     { showError('phone','Required'); valid=false; }
+  if (!address)   { showError('address','Required'); valid=false; }
+  if (!valid) return;
+
+  showProcessing(true);
+  document.getElementById('submit-btn').disabled = true;
+
+  try {
+    /*
+      BACKEND REQUIRED:
+      You need a server endpoint at /create-payment-intent that:
+      1. Creates a Stripe PaymentIntent for the correct amount
+      2. Returns { clientSecret }
+      See: https://stripe.com/docs/payments/accept-a-payment
+
+      Until your backend is live, Cursor can scaffold this as a
+      Cloudflare Worker or a simple Node/Express endpoint.
+    */
+    const res = await fetch('/create-payment-intent', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ plan:selectedPlan, bins:selectedBins, price:selectedPrice, email })
+    });
+
+    if (!res.ok) throw new Error('Server error');
+    const { clientSecret, error: serverError } = await res.json();
+    if (serverError) throw new Error(serverError);
+
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method:{
+        card: cardNumber,
+        billing_details:{
+          name: firstName+' '+lastName,
+          email,
+          phone,
+          address:{ postal_code: zip }
+        }
+      }
+    });
+
+    if (error) {
+      document.getElementById('err-card-general').textContent = error.message;
+      showProcessing(false);
+      document.getElementById('submit-btn').disabled = false;
+      return;
+    }
+
+    onSuccess({ name:firstName+' '+lastName, email, phone, address });
+
+  } catch(err) {
+    document.getElementById('err-card-general').textContent =
+      'Something went wrong. Please try again or call us directly.';
+    showProcessing(false);
+    document.getElementById('submit-btn').disabled = false;
+  }
+});
+
+/* ── SUCCESS ── */
+function onSuccess({ name, email, phone, address }) {
+  showProcessing(false);
+
+  // Meta Pixel: Purchase
+  if (typeof fbq !== 'undefined') {
+    fbq('track','Purchase',{
+      value: selectedPrice,
+      currency:'USD',
+      content_name: planNames[selectedPlan]
+    });
+  }
+
+  // GHL webhook
+  if (GHL_WEBHOOK_URL && GHL_WEBHOOK_URL !== 'GHL_WEBHOOK_URL') {
+    fetch(GHL_WEBHOOK_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name, email, phone, address,
+        plan: selectedPlan,
+        bins: selectedBins,
+        price: selectedPrice,
+        source: 'checkout-page',
+        status: 'paid'
+      })
+    }).catch(()=>{});
+  }
+
+  // Show success
+  document.getElementById('checkout-form').style.display = 'none';
+  document.getElementById('success-screen').classList.add('show');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ── HELPERS ── */
+function showProcessing(show) {
+  document.getElementById('processing-overlay').classList.toggle('show', show);
+}
+function showError(field, msg) {
+  const el = document.getElementById('err-'+field);
+  if (el) el.textContent = msg;
+  const input = document.getElementById(field);
+  if (input) input.classList.add('error');
+}
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(el => el.textContent='');
+  document.querySelectorAll('input.error').forEach(el => el.classList.remove('error'));
+}
+
+/* Pixel: BeginCheckout on page load */
+if (typeof fbq !== 'undefined') {
+  fbq('track','InitiateCheckout',{
+    value: selectedPrice,
+    currency:'USD',
+    content_name: planNames[selectedPlan],
+    num_items: selectedBins
+  });
+}
+</script>
+
+</body>
+</html>
