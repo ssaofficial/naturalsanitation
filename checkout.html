@@ -616,7 +616,7 @@ paymentRequest.canMakePayment().then(result => {
 paymentRequest.on('paymentmethod', async (ev) => {
   showProcessing(true);
   try {
-    const res = await fetch('/create-payment-intent', {
+    const res = await fetch('https://ns-payment.increase-roas.workers.dev/create-payment-intent', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(buildCheckoutPaymentIntentPayload(ev.payerEmail))
@@ -668,7 +668,7 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
       Until your backend is live, Cursor can scaffold this as a
       Cloudflare Worker or a simple Node/Express endpoint.
     */
-    const res = await fetch('/create-payment-intent', {
+    const res = await fetch('https://ns-payment.increase-roas.workers.dev/create-payment-intent', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(buildCheckoutPaymentIntentPayload(email))
