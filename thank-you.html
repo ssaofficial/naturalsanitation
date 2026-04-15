@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're on the route – Natural Sanitation</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','499919262310418');
+    fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" alt=""
+    src="https://www.facebook.com/tr?id=499919262310418&ev=PageView&noscript=1"/></noscript>
+  <!-- Replace G-XXXXXXXXXX with your GA4 measurement ID -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX', { send_page_view: true });
+  </script>
+  <style>
+    :root{--cream:#FAFAF7;--surface:#fff;--ink:#0F1115;--slate:#5A6371;--teal:#00A88E;--teal-dim:#e6faf6;--border:#E5E7EB;--green:#16A34A}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;font-size:17px;min-height:100vh}
+    .wrap{max-width:700px;margin:0 auto;padding:32px 20px 48px}
+    .hero-t{font-size:clamp(2rem,6vw,3.25rem);font-weight:700;color:var(--teal);line-height:1.1;margin-bottom:12px}
+    .sub{font-size:22px;color:var(--ink);font-weight:600;margin-bottom:20px}
+    p{color:var(--slate);margin-bottom:14px}
+    .card{background:var(--teal-dim);border:1px solid #b2ebe0;border-radius:14px;padding:22px;margin:28px 0}
+    .card h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+    .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}
+    .row:last-child{border-bottom:none}
+    .row span:first-child{color:var(--slate)}
+    .row span:last-child{font-weight:600;color:var(--ink);text-align:right}
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+    .btn{min-height:60px;padding:0 22px;border-radius:10px;font-size:16px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;flex:1;min-width:200px}
+    .btn-primary{background:var(--teal);color:#fff}
+    .btn-secondary{background:transparent;color:var(--ink);border:2px solid var(--border)}
+    .trust{font-size:14px;color:var(--slate);text-align:center;margin-top:24px}
+    .ps{margin-top:36px;padding-top:24px;border-top:1px solid var(--border);font-size:16px;color:var(--slate)}
+    footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);font-size:14px;color:var(--slate)}
+    footer a{color:var(--teal)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="hero-t">✅ You're locked in.</p>
+    <p class="sub" id="welcome-line">Welcome to the route.</p>
+    <p>Manny will text you within 24 hours to confirm your route day. Your first clean happens on your next regular trash pickup.</p>
+    <p>Watch your phone for a text with your before-and-after photos right after your first clean. Most people forward them to their spouse within 60 seconds. Some text them to the entire group chat.</p>
+
+    <div class="card">
+      <h2>Order confirmed</h2>
+      <div class="row"><span>Plan:</span><span id="o-plan">—</span></div>
+      <div class="row"><span>Bins:</span><span id="o-bins">—</span></div>
+      <div class="row"><span>Amount:</span><span id="o-amt">—</span></div>
+      <div class="row"><span>Receipt sent:</span><span id="o-email">—</span></div>
+      <div class="row"><span>Service area:</span><span id="o-city">—</span></div>
+      <p style="margin-top:16px;margin-bottom:0;font-size:15px">Questions? Text Manny directly: <a href="tel:+15865006794" style="color:var(--teal);font-weight:600">(586) 500-6794</a></p>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" id="vcard-btn" href="#">📱 Save Manny's Number</a>
+      <button type="button" class="btn btn-secondary" id="share-btn">🏠 Tell a Neighbor — Earn $25 Credit</button>
+    </div>
+    <p class="trust">Already on the route: 1,400+ Metro Detroit homes<br />⭐ 4.9 stars · 250+ Google reviews · 6+ years</p>
+
+    <p class="ps"><strong>P.S.</strong> — Manny here. Real talk: most new customers text me within the first week with one of two messages. Either "wow, the photos are wild" or "my neighbor wants in too — can you text them?" Either one works. I'll be in touch.</p>
+
+    <footer>
+      <strong>Natural Sanitation</strong><br />
+      Texted before-and-after photos. Every clean. Every time.<br /><br />
+      <a href="tel:+15865006794">📞 (586) 500-6794</a> — Text Manny directly<br />
+      <a href="mailto:naturalsanitation@gmail.com">✉ naturalsanitation@gmail.com</a><br /><br />
+      <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms-of-service.html">Terms of Service</a> · <a href="sms-consent.html">SMS Consent</a> · <a href="refund-policy.html">Refund Policy</a><br /><br />
+      © 2025 Natural Sanitation LLC · Metro Detroit, Michigan
+    </footer>
+  </div>
+
+  <script>
+(function(){
+  var p = new URLSearchParams(location.search);
+  var first = (p.get('firstName') || p.get('fname') || '').trim();
+  var plan = (p.get('plan') || 'annual').toLowerCase();
+  var bins = parseInt(p.get('bins') || '1', 10) || 1;
+  var amount = p.get('amount') || '';
+  var email = (p.get('email') || '').trim();
+  var city = (p.get('city') || '').trim();
+
+  document.getElementById('welcome-line').textContent =
+    first ? ('Welcome to the route, ' + first + '.') : 'Welcome to the route.';
+
+  var planLabel = plan === 'monthly' ? 'Monthly' : plan === 'quarterly' ? 'Quarterly' : 'Annual';
+  document.getElementById('o-plan').textContent = planLabel;
+  document.getElementById('o-bins').textContent = bins + ' bin' + (bins === 1 ? '' : 's');
+  document.getElementById('o-amt').textContent = amount ? ('$' + amount + ' charged today') : '—';
+  document.getElementById('o-email').textContent = email || '—';
+  document.getElementById('o-city').textContent = city ? (city + ', MI') : 'Metro Detroit, MI';
+
+  var val = parseFloat(String(amount).replace(/[^0-9.]/g, '')) || 0;
+  if (typeof fbq !== 'undefined') {
+    fbq('track', 'Purchase', { value: val, currency: 'USD', content_name: planLabel });
+  }
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'purchase', {
+      transaction_id: p.get('txn') || ('ty_' + Date.now()),
+      value: val,
+      currency: 'USD',
+      items: [{ item_name: planLabel, quantity: bins }]
+    });
+  }
+
+  var vcard = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'FN:Manny — Natural Sanitation',
+    'N:Natural Sanitation;Manny;;;',
+    'TEL;TYPE=CELL:+15865006794',
+    'ORG:Natural Sanitation LLC',
+    'NOTE:Garbage bin steam cleaning · Metro Detroit',
+    'END:VCARD'
+  ].join('\r\n');
+
+  document.getElementById('vcard-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    var blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'manny-natural-sanitation.vcf';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('share-btn').addEventListener('click', function() {
+    var shareUrl = 'https://naturalsanitationsignup.com/index-v2.html';
+    var text = 'I just signed up for Natural Sanitation — they steam-clean garbage bins and text before/after photos. Worth a look: ';
+    if (navigator.share) {
+      navigator.share({ title: 'Natural Sanitation', text: text, url: shareUrl }).catch(function(){});
+    } else {
+      window.open('https://www.google.com/search?q=' + encodeURIComponent('Natural Sanitation Metro Detroit'), '_blank');
+    }
+  });
+})();
+  </script>
+</body>
+</html>
