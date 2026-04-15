@@ -314,10 +314,65 @@ head.appendChild(script);
     .zip-msg{font-size:13px;font-weight:600;margin-top:6px;min-height:18px}
     .zip-msg.valid{color:var(--green)}
     .zip-msg.invalid{color:#92400e}
-    .zip-extra-math{
-      font-size:12px;
+    .zip-compact{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      padding:10px 12px;
+      background:var(--green-light);
+      border:1px solid var(--green-border);
+      border-radius:8px;
+      font-size:14px;
+      font-weight:700;
+      color:var(--charcoal);
+    }
+    .zip-compact-line{flex:1;min-width:0;line-height:1.35}
+    .zip-change-link{
+      flex-shrink:0;
+      background:none;
+      border:none;
+      padding:0;
+      font:inherit;
+      font-size:13px;
+      font-weight:800;
+      color:var(--blue);
+      cursor:pointer;
+      text-decoration:underline;
+    }
+    .zip-change-link:hover{color:var(--blue-hover)}
+
+    .plan-cards-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      align-items:stretch;
+    }
+    @media(max-width:640px){
+      .plan-cards-row{grid-template-columns:1fr}
+    }
+    .plan-cards-row .plan-tile{
+      display:flex;
+      flex-direction:column;
+      margin:0;
+      cursor:pointer;
+      text-align:left;
+    }
+    .plan-cards-row .plan-tile-top{
+      margin-bottom:8px;
+    }
+    .plan-note-plain{
+      font-size:13px;
       color:var(--muted);
-      margin-top:6px;
+      line-height:1.45;
+      margin:10px 0 0;
+    }
+    .plan-per-bin-line{
+      font-size:12px;
+      font-weight:600;
+      color:var(--muted);
+      margin-top:4px;
     }
 
     /* CTA */
@@ -1187,87 +1242,71 @@ head.appendChild(script);
       <div class="plan-col">
 
         <!-- ZIP -->
-        <div class="zip-wrap">
-          <div class="field-label">
-            <span class="zip-label-text" id="zip-label">Enter your ZIP to verify route</span>
+        <div class="zip-wrap" id="zip-wrap">
+          <div id="zip-expanded">
+            <div class="field-label">
+              <span class="zip-label-text" id="zip-label">Enter your ZIP to verify route</span>
+            </div>
+            <div class="zip-row">
+              <input
+                class="zip-input"
+                id="zip-input"
+                type="text"
+                maxlength="5"
+                placeholder="48009"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                aria-label="ZIP code"
+                oninput="checkZip()"
+              />
+            </div>
+            <div class="zip-msg" id="zip-msg" aria-live="polite" aria-atomic="true"></div>
           </div>
-          <div class="zip-row">
-            <input
-              class="zip-input"
-              id="zip-input"
-              type="text"
-              maxlength="5"
-              placeholder="48009"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              aria-label="ZIP code"
-              oninput="checkZip()"
-            />
+          <div id="zip-compact" class="zip-compact" hidden>
+            <span class="zip-compact-line" id="zip-compact-line" aria-live="polite"></span>
+            <button type="button" class="zip-change-link" id="zip-change-btn" onclick="expandZipForEdit()">Change</button>
           </div>
-          <div class="zip-msg" id="zip-msg" aria-live="polite" aria-atomic="true"></div>
         </div>
 
         <!-- Bin count -->
         <div>
           <div class="field-label">How many bins?</div>
           <div class="bin-row">
-            <button class="bin-btn" data-bins="1" onclick="selectBins(1)">1 Bin</button>
-            <button class="bin-btn active" data-bins="2" onclick="selectBins(2)">2 Bins</button>
-            <button class="bin-btn" data-bins="3" onclick="selectBins(3)">3 Bins</button>
-            <button class="bin-btn" data-bins="4" onclick="selectBins(4)">4 Bins</button>
+            <button type="button" class="bin-btn active" data-bins="1" onclick="selectBins(1)">1 Bin</button>
+            <button type="button" class="bin-btn" data-bins="2" onclick="selectBins(2)">2 Bins</button>
+            <button type="button" class="bin-btn" data-bins="3" onclick="selectBins(3)">3 Bins</button>
+            <button type="button" class="bin-btn" data-bins="4" onclick="selectBins(4)">4 Bins</button>
           </div>
         </div>
 
-        <!-- Annual tile -->
-        <div class="plan-tile selected" id="tile-annual" onclick="selectPlan('annual')">
-          <div class="plan-radio"></div>
-          <div class="plan-tile-top">
-            <span class="plan-tile-name">Annual</span>
-            <span class="best-value-badge">Best Value</span>
+        <div class="plan-cards-row" id="plan-cards-row">
+          <div class="plan-tile selected" id="tile-annual" role="button" tabindex="0" onclick="selectPlan('annual')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlan('annual');}">
+            <div class="plan-radio" aria-hidden="true"></div>
+            <div class="plan-tile-top">
+              <span class="plan-tile-name">Annual Plan</span>
+              <span class="best-value-badge">Best Value</span>
+            </div>
+            <div class="plan-price-row">
+              <span class="plan-price" id="annual-price">$250</span>
+              <span class="plan-price-period">/year</span>
+            </div>
+            <div class="plan-per-bin-line" id="annual-per-bin-line">$250/year per bin</div>
+            <p class="plan-note-plain">Billed once per year.</p>
           </div>
-          <div class="savings-pill" id="savings-pill">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L6.18 3.4L9 3.8L7 5.74L7.46 8.54L5 7.3L2.54 8.54L3 5.74L1 3.8L3.82 3.4L5 1Z" fill="#16a34a"/></svg>
-            <span id="savings-pill-text">Best value vs paying monthly all season</span>
+          <div class="plan-tile" id="tile-monthly" role="button" tabindex="0" onclick="selectPlan('monthly')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlan('monthly');}">
+            <div class="plan-radio" aria-hidden="true"></div>
+            <div class="plan-tile-top">
+              <span class="plan-tile-name">Monthly Plan</span>
+            </div>
+            <div class="plan-price-row">
+              <span class="plan-price" id="monthly-price">$39</span>
+              <span class="plan-price-period">/month</span>
+            </div>
+            <div class="plan-per-bin-line" id="monthly-per-bin-line">$39/month per bin</div>
+            <p class="plan-note-plain">No contract. Cancel any time.</p>
           </div>
-          <div class="plan-price-row">
-            <span class="plan-price" id="annual-price">$250</span>
-            <span class="plan-price-period">/yr</span>
-          </div>
-          <div class="plan-note" id="annual-note">$250 today<br>Annual $250/yr billed today.</div>
-          <button type="button" class="cta-btn" id="annual-tile-cta" style="margin-top:10px;padding:10px;font-size:14px" onclick="event.stopPropagation();selectPlan('annual');openCheckout()">Continue with 2 bins • $250 today</button>
         </div>
 
-        <!-- Quarterly tile -->
-        <div class="plan-tile" id="tile-quarterly" onclick="selectPlan('quarterly')">
-          <div class="plan-radio"></div>
-          <div class="plan-tile-top">
-            <span class="plan-tile-name">Quarterly</span>
-          </div>
-          <div class="plan-price-row">
-            <span class="plan-price" id="quarterly-price">$125</span>
-            <span class="plan-price-period">/quarter</span>
-          </div>
-          <div class="plan-note" id="quarterly-note">Per quarter · billed every 9 months</div>
-          <button class="cta-btn" style="margin-top:10px;padding:10px;font-size:14px">Continue with Quarterly</button>
-        </div>
-
-        <!-- Monthly tile -->
-        <div class="plan-tile" id="tile-monthly" onclick="selectPlan('monthly')">
-          <div class="plan-radio"></div>
-          <div class="plan-tile-top">
-            <span class="plan-tile-name">Monthly</span>
-          </div>
-          <div class="billing-pill">Month to month · Mar–Nov · billed every 9 months</div>
-          <div class="savings-pill" id="monthly-vs-quarterly-pill" style="display:none"></div>
-          <div class="plan-price-row">
-            <span class="plan-price" id="monthly-price">$39</span>
-            <span class="plan-price-period">/mo</span>
-          </div>
-          <div class="plan-note" id="monthly-note">Cancel any time during the season.</div>
-          <button class="cta-btn" style="margin-top:10px;padding:10px;font-size:14px">Continue with Monthly</button>
-        </div>
-
-        <div class="zip-extra-math" id="zip-extra-math">Tap 1–4 bins — Annual, Quarterly, and Monthly prices update together.</div>
         <div id="checkout-pricing-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
         <!-- Waitlist (out of area) -->
@@ -1278,10 +1317,10 @@ head.appendChild(script);
         </div>
 
         <!-- CTA -->
-        <button class="cta-btn" id="main-cta" onclick="openCheckout()">
+        <button type="button" class="cta-btn" id="main-cta" onclick="openCheckout()" disabled>
           Get My Bins Cleaned
         </button>
-        <p class="hero-cta-note">$39/mo. No contract. Cancel any time.</p>
+        <p class="hero-cta-note plan-cta-note">$39/mo. No contract. Cancel any time. Before-and-after photos after every clean.</p>
 
       </div><!-- /plan-col -->
     </div><!-- /hero-columns -->
@@ -2271,9 +2310,8 @@ head.appendChild(script);
     <h2>Routes are filling by ZIP code. Lock in your spot today.</h2>
     <p>127,000+ bins cleaned · 250+ five-star reviews · 6+ years in Metro Detroit</p>
     <div class="bottom-plan-row">
-      <button class="bottom-plan-btn active" onclick="bottomSelectPlan('annual',this)">Annual · <span id="b-annual">$250</span>/yr</button>
-      <button class="bottom-plan-btn" onclick="bottomSelectPlan('quarterly',this)">Quarterly · <span id="b-quarterly">$125</span>/qtr</button>
-      <button class="bottom-plan-btn" onclick="bottomSelectPlan('monthly',this)">Monthly · <span id="b-monthly">$39</span>/mo</button>
+      <button type="button" class="bottom-plan-btn active" onclick="bottomSelectPlan('annual',this)">Annual · <span id="b-annual">$250</span>/yr</button>
+      <button type="button" class="bottom-plan-btn" onclick="bottomSelectPlan('monthly',this)">Monthly · <span id="b-monthly">$39</span>/mo</button>
     </div>
     <button class="bottom-cta-btn" onclick="openCheckout()">Lock In My Spot →</button>
     <div class="bottom-trust">No contract · Billed securely through Jobber · Cancel any time</div>
@@ -2463,18 +2501,15 @@ const SERVICE_ZIPS = new Set([
   '48382','48383','48386','48390','48391','48393','48442','48462'
 ]);
 
-/* ── PRICING (bins = cans) ──
-   Annual: user lines labeled "Monthly … $250/$299/$349" = year pricing for 2/3/4 bins.
-   Monthly per month: $39 / $45 / $50 (2/3/4). Quarterly per quarter: $125 / $155 / $185.
-   1-bin: annual kept at $219; monthly/quarterly inferred from same $30 step as 2→3 bins on quarterly. */
+/* ── PRICING (bins = cans): $250/yr per bin, $39/mo per bin (totals = rate × bin count) ── */
 const PRICING = {
-  1: { annual:219, monthly:29, quarterly:95 },
-  2: { annual:250, monthly:39, quarterly:125 },
-  3: { annual:299, monthly:45, quarterly:155 },
-  4: { annual:349, monthly:50, quarterly:185 }
+  1: { annual:250, monthly:39 },
+  2: { annual:500, monthly:78 },
+  3: { annual:750, monthly:117 },
+  4: { annual:1000, monthly:156 }
 };
 
-let selectedBins = 2;
+let selectedBins = 1;
 let selectedPlan = 'annual';
 let zipVerified = false;
 
@@ -2537,8 +2572,8 @@ function announcePricingLive() {
   var p = PRICING[selectedBins];
   el.textContent =
     selectedBins + ' bin' + (selectedBins === 1 ? '' : 's') +
-    '. Annual ' + p.annual + ' dollars per year, full amount billed today in one charge. ' +
-    'Monthly ' + p.monthly + ' dollars per month. Quarterly ' + p.quarterly + ' dollars per quarter.';
+    '. Annual total $' + p.annual + ' per year, one payment today. ' +
+    'Monthly total $' + p.monthly + ' per month.';
 }
 
 /* ── BIN COUNT ── */
@@ -2551,11 +2586,16 @@ function selectBins(n) {
 
 /* ── PLAN SELECTION ── */
 function selectPlan(plan) {
+  if (plan !== 'annual' && plan !== 'monthly') {
+    return;
+  }
   selectedPlan = plan;
-  ['annual','monthly','quarterly'].forEach(p => {
-    document.getElementById('tile-'+p).classList.remove('selected');
+  ['annual','monthly'].forEach(function(p) {
+    var t = document.getElementById('tile-' + p);
+    if (t) {
+      t.classList.toggle('selected', p === plan);
+    }
   });
-  document.getElementById('tile-'+plan).classList.add('selected');
   persistCheckoutContext();
   refreshCheckoutModalSummary();
   updateCTALabel();
@@ -2574,34 +2614,43 @@ function bottomSelectPlan(plan, btn) {
 /* ── PRICING UPDATE ── */
 function updatePricing() {
   const p = PRICING[selectedBins];
+  var perY = 250;
+  var perM = 39;
 
-  document.getElementById('annual-price').textContent = '$'+p.annual;
-  document.getElementById('monthly-price').textContent = '$'+p.monthly;
-  document.getElementById('quarterly-price').textContent = '$'+p.quarterly;
-  document.getElementById('b-annual').textContent = '$'+p.annual;
-  document.getElementById('b-monthly').textContent = '$'+p.monthly;
-  document.getElementById('b-quarterly').textContent = '$'+p.quarterly;
+  var ap = document.getElementById('annual-price');
+  var mp = document.getElementById('monthly-price');
+  if (ap) {
+    ap.textContent = '$' + p.annual;
+  }
+  if (mp) {
+    mp.textContent = '$' + p.monthly;
+  }
+  var ba = document.getElementById('b-annual');
+  var bm = document.getElementById('b-monthly');
+  if (ba) {
+    ba.textContent = '$' + p.annual;
+  }
+  if (bm) {
+    bm.textContent = '$' + p.monthly;
+  }
 
-  document.getElementById('annual-note').innerHTML =
-    '$'+p.annual+' today<br>Annual $'+p.annual+'/yr billed today.';
-
-  const seasonMo = 9;
-  const monthlySeason = p.monthly * seasonMo;
-  const saveVsMonthly = Math.max(0, monthlySeason - p.annual);
-  document.getElementById('savings-pill-text').textContent =
-    saveVsMonthly > 0
-      ? 'Save $'+saveVsMonthly+' vs '+seasonMo+' monthly payments this season'
-      : 'Best value for March–November coverage';
-
-  const threeMo = p.monthly * 3;
-  const saveVsQ = p.quarterly - threeMo;
-  const mqPill = document.getElementById('monthly-vs-quarterly-pill');
-  if (saveVsQ > 0) {
-    mqPill.style.display = 'inline-flex';
-    mqPill.textContent = 'Save $'+saveVsQ+' vs one quarterly bill (same 3 months)';
-  } else {
-    mqPill.style.display = 'none';
-    mqPill.textContent = '';
+  var apl = document.getElementById('annual-per-bin-line');
+  var mpl = document.getElementById('monthly-per-bin-line');
+  if (apl) {
+    apl.textContent =
+      '$' +
+      perY +
+      '/year per bin × ' +
+      selectedBins +
+      (selectedBins === 1 ? ' bin' : ' bins');
+  }
+  if (mpl) {
+    mpl.textContent =
+      '$' +
+      perM +
+      '/month per bin × ' +
+      selectedBins +
+      (selectedBins === 1 ? ' bin' : ' bins');
   }
 
   persistCheckoutContext();
@@ -2615,7 +2664,7 @@ function getChargeAmountDollars() {
   if (selectedPlan === 'annual') {
     return p.annual;
   }
-  return p[selectedPlan];
+  return p.monthly;
 }
 
 function persistCheckoutContext() {
@@ -2633,7 +2682,12 @@ function restoreCheckoutContext() {
     const p = localStorage.getItem(LS_CHECKOUT.plan);
     const b = parseInt(localStorage.getItem(LS_CHECKOUT.bins), 10);
     const z = localStorage.getItem(LS_CHECKOUT.zip);
-    const planRestore = (p === 'annual' || p === 'monthly' || p === 'quarterly') ? p : null;
+    var planRestore = null;
+    if (p === 'annual' || p === 'monthly') {
+      planRestore = p;
+    } else if (p === 'quarterly') {
+      planRestore = 'monthly';
+    }
     if (planRestore) {
       selectedPlan = planRestore;
     }
@@ -2644,12 +2698,15 @@ function restoreCheckoutContext() {
       });
     }
     updatePricing();
-    ['annual','monthly','quarterly'].forEach(function(pp) {
-      document.getElementById('tile-'+pp).classList.toggle('selected', pp === selectedPlan);
+    ['annual','monthly'].forEach(function(pp) {
+      var t = document.getElementById('tile-' + pp);
+      if (t) {
+        t.classList.toggle('selected', pp === selectedPlan);
+      }
     });
     document.querySelectorAll('.bottom-plan-btn').forEach(function(btn) {
       var oc = btn.getAttribute('onclick') || '';
-      btn.classList.toggle('active', oc.indexOf("'"+selectedPlan+"'") !== -1);
+      btn.classList.toggle('active', oc.indexOf("'" + selectedPlan + "'") !== -1);
     });
     if (z && /^\d{5}$/.test(z)) {
       document.getElementById('zip-input').value = z;
@@ -2677,15 +2734,13 @@ function refreshCheckoutModalSummary() {
     return;
   }
   var p = PRICING[selectedBins];
-  var planLabels = { annual:'Annual Plan', monthly:'Monthly Plan', quarterly:'Quarterly Plan' };
+  var planLabels = { annual:'Annual Plan', monthly:'Monthly Plan' };
   var dollars = getChargeAmountDollars();
   var priceLine;
   if (selectedPlan === 'annual') {
     priceLine = 'Annual $' + dollars + '/yr billed today.';
-  } else if (selectedPlan === 'monthly') {
-    priceLine = '$' + dollars + '/mo';
   } else {
-    priceLine = '$' + dollars + '/quarter';
+    priceLine = 'Monthly $' + dollars + '/month.';
   }
   document.getElementById('modal-plan-label').textContent =
     planLabels[selectedPlan] + ' · ' + selectedBins + ' bin' + (selectedBins === 1 ? '' : 's');
@@ -2904,7 +2959,7 @@ function mountOrUpdateStripeInModal() {
     } else {
       refreshCheckoutModalSummary();
     }
-    var planLabels = { annual:'Annual Plan', monthly:'Monthly Plan', quarterly:'Quarterly Plan' };
+    var planLabels = { annual:'Annual Plan', monthly:'Monthly Plan' };
     var cents = Math.round(getChargeAmountDollars() * 100);
     if (!__checkoutModal.paymentRequest) {
       var pr = __checkoutModal.stripe.paymentRequest({
@@ -3457,18 +3512,59 @@ function onCheckoutModalKeydown(e) {
 }
 
 function updateCTALabel() {
-  const p = PRICING[selectedBins];
-  const binLabel = selectedBins+' bin'+(selectedBins === 1 ? '' : 's');
-  const labels = {
-    annual:    'Continue with '+binLabel+' • $'+p.annual+' today',
-    monthly:   'Continue with '+binLabel+' • $'+p.monthly+'/mo',
-    quarterly: 'Continue with '+binLabel+' • $'+p.quarterly+'/quarter'
-  };
-  document.getElementById('sticky-mobile-btn').textContent = zipVerified ? labels[selectedPlan] : 'Check ZIP';
-  var annualTileCta = document.getElementById('annual-tile-cta');
-  if (annualTileCta) {
-    annualTileCta.textContent =
-      'Continue with ' + binLabel + ' • $' + p.annual + ' today';
+  var sticky = document.getElementById('sticky-mobile-btn');
+  if (sticky) {
+    sticky.textContent = zipVerified ? 'Get My Bins Cleaned' : 'Check ZIP';
+  }
+}
+
+function refreshZipChrome() {
+  var zip = document.getElementById('zip-input').value.trim();
+  var ex = document.getElementById('zip-expanded');
+  var comp = document.getElementById('zip-compact');
+  var line = document.getElementById('zip-compact-line');
+  if (!ex || !comp || !line) {
+    return;
+  }
+  var ok = zipVerified && zip.length === 5 && SERVICE_ZIPS.has(zip);
+  if (ok) {
+    line.textContent = 'ZIP ' + zip + ' — Oakland & Macomb County';
+    ex.setAttribute('hidden', '');
+    comp.removeAttribute('hidden');
+  } else {
+    comp.setAttribute('hidden', '');
+    ex.removeAttribute('hidden');
+  }
+}
+
+function expandZipForEdit() {
+  zipVerified = false;
+  var ctaBtn = document.getElementById('main-cta');
+  if (ctaBtn) {
+    ctaBtn.disabled = true;
+  }
+  var inputEl = document.getElementById('zip-input');
+  var labelEl = document.getElementById('zip-label');
+  var msgEl = document.getElementById('zip-msg');
+  var waitlistEl = document.getElementById('waitlist-block');
+  if (inputEl) {
+    inputEl.classList.remove('verified');
+  }
+  if (labelEl) {
+    labelEl.textContent = 'Enter your ZIP to verify route';
+    labelEl.className = 'zip-label-text';
+  }
+  if (msgEl) {
+    msgEl.textContent = '';
+    msgEl.className = 'zip-msg';
+  }
+  if (waitlistEl) {
+    waitlistEl.style.display = 'none';
+  }
+  refreshZipChrome();
+  updateCTALabel();
+  if (inputEl) {
+    inputEl.focus();
   }
 }
 
@@ -3484,17 +3580,34 @@ function checkZip(opts) {
 
   if (!zip) {
     msgEl.textContent = '';
+    msgEl.className = 'zip-msg';
+    zipVerified = false;
+    if (ctaBtn) {
+      ctaBtn.disabled = true;
+    }
+    labelEl.textContent = 'Enter your ZIP to verify route';
+    labelEl.className = 'zip-label-text';
+    inputEl.classList.remove('verified');
+    waitlistEl.style.display = 'none';
+    refreshZipChrome();
+    updateCTALabel();
     return;
   }
 
   if (zip.length !== 5 || !/^\d{5}$/.test(zip)) {
     msgEl.textContent = 'Enter a valid 5-digit ZIP code.';
     msgEl.className = 'zip-msg invalid';
+    zipVerified = false;
+    if (ctaBtn) {
+      ctaBtn.disabled = true;
+    }
+    refreshZipChrome();
+    updateCTALabel();
     return;
   }
 
   if (SERVICE_ZIPS.has(zip)) {
-    msgEl.textContent = '✓ ZIP verified — routes are open this week.';
+    msgEl.textContent = '';
     msgEl.className = 'zip-msg valid';
     labelEl.textContent = '✓ ZIP verified';
     labelEl.className = 'zip-label-text verified';
@@ -3502,8 +3615,12 @@ function checkZip(opts) {
     waitlistEl.style.display = 'none';
     ctaBtn.disabled = false;
     zipVerified = true;
+    refreshZipChrome();
     if (!opts.skipScroll) {
-      document.getElementById('tile-annual').scrollIntoView({ behavior:'smooth', block:'center' });
+      var anchor = document.getElementById('plan-cards-row');
+      if (anchor) {
+        anchor.scrollIntoView({ behavior:'smooth', block:'center' });
+      }
     }
     if (!opts.skipDefaultPlan) {
       selectPlan('annual');
@@ -3518,6 +3635,7 @@ function checkZip(opts) {
     waitlistEl.style.display = 'block';
     ctaBtn.disabled = true;
     zipVerified = false;
+    refreshZipChrome();
   }
   updateCTALabel();
 }
@@ -3563,7 +3681,7 @@ function openCheckoutModalShell() {
   var fallback = document.getElementById('checkout-embed-fallback');
   ensureSingleChargeCheckoutState();
   var displayPrice = getChargeAmountDollars();
-  var planLabels = { annual:'Annual Plan', monthly:'Monthly Plan', quarterly:'Quarterly Plan' };
+  var planLabels = { annual:'Annual Plan', monthly:'Monthly Plan' };
 
   maybeFireInitiateCheckout(displayPrice, planLabels);
 
@@ -3907,6 +4025,7 @@ try {
 } catch (e) {
   updatePricing();
 }
+refreshZipChrome();
 announcePricingLive();
 initCheckoutModal();
 
