@@ -1493,24 +1493,14 @@ head.appendChild(script);
           <div class="modal-steps-wrap" id="modal-steps-wrap">
             <div id="modal-step-1" class="modal-step-panel">
               <div class="modal-field">
-                <label for="modal-first-name">First name</label>
-                <input type="text" id="modal-first-name" name="given-name" autocomplete="given-name" required />
-                <div class="modal-field-error" id="modal-err-first-name"></div>
-              </div>
-              <div class="modal-field">
-                <label for="modal-last-name">Last name</label>
-                <input type="text" id="modal-last-name" name="family-name" autocomplete="family-name" required />
-                <div class="modal-field-error" id="modal-err-last-name"></div>
+                <label for="modal-full-name">Name</label>
+                <input type="text" id="modal-full-name" name="name" autocomplete="name" required />
+                <div class="modal-field-error" id="modal-err-full-name"></div>
               </div>
               <div class="modal-field">
                 <label for="modal-phone">Phone</label>
                 <input type="tel" id="modal-phone" name="phone" autocomplete="tel" required />
                 <div class="modal-field-error" id="modal-err-phone"></div>
-              </div>
-              <div class="modal-field">
-                <label for="modal-email">Email</label>
-                <input type="email" id="modal-email" name="email" autocomplete="email" required />
-                <div class="modal-field-error" id="modal-err-email"></div>
               </div>
               <button type="button" class="modal-submit-secondary" id="modal-continue-payment">Continue to payment →</button>
             </div>
@@ -1523,6 +1513,11 @@ head.appendChild(script);
               </div>
 
               <form id="modal-checkout-form" novalidate>
+                <div class="modal-field">
+                  <label for="modal-email">Email</label>
+                  <input type="email" id="modal-email" name="email" autocomplete="email" required />
+                  <div class="modal-field-error" id="modal-err-email"></div>
+                </div>
                 <div class="modal-field">
                   <label for="modal-name">Name on card</label>
                   <input type="text" id="modal-name" name="ccname" autocomplete="cc-name" required />
@@ -1898,26 +1893,19 @@ function fireModalGHLPartialLeadIfReady() {
   if (!GHL_WEBHOOK_URL || !/^https:\/\//.test(GHL_WEBHOOK_URL)) {
     return;
   }
-  var fn = document.getElementById('modal-first-name');
-  var ln = document.getElementById('modal-last-name');
+  var nm = document.getElementById('modal-full-name');
   var ph = document.getElementById('modal-phone');
-  var em = document.getElementById('modal-email');
-  if (!fn || !ln || !ph || !em) {
+  if (!nm || !ph) {
     return;
   }
-  var first = (fn.value || '').trim();
-  var last = (ln.value || '').trim();
+  var name = (nm.value || '').trim();
   var phone = (ph.value || '').trim();
-  var email = (em.value || '').trim();
-  if (first.length < 1 || last.length < 1 || phone.length < 1 || email.length < 1) {
+  if (name.length < 1 || phone.length < 1) {
     return;
   }
   var zip = document.getElementById('zip-input').value.trim();
   var body = {
-    firstName: first,
-    lastName: last,
-    name: (first + ' ' + last).trim(),
-    email: email,
+    name: name,
     phone: phone,
     plan: selectedPlan,
     bins: selectedBins,
@@ -1939,13 +1927,12 @@ function fireModalGHLPartialLeadIfReady() {
 }
 
 function syncNameOnCardFromStep1() {
-  var fn = document.getElementById('modal-first-name');
-  var ln = document.getElementById('modal-last-name');
+  var full = document.getElementById('modal-full-name');
   var nm = document.getElementById('modal-name');
-  if (!fn || !ln || !nm) {
+  if (!full || !nm) {
     return;
   }
-  nm.value = ((fn.value || '').trim() + ' ' + (ln.value || '').trim()).trim();
+  nm.value = (full.value || '').trim();
 }
 
 function resetModalCheckoutSteps() {
@@ -2694,7 +2681,7 @@ function openCheckoutModalShell() {
   document.addEventListener('keydown', __checkoutModal.trapHandler, true);
 
   setTimeout(function() {
-    var first = document.getElementById('modal-first-name');
+    var first = document.getElementById('modal-full-name');
     if (wrap.style.display !== 'none' && first) {
       first.focus();
     } else {
@@ -2761,48 +2748,26 @@ function toggleScienceTab(tabId, btn) {
 }
 
 function goModalCheckoutStep2() {
-  var e1 = document.getElementById('modal-err-first-name');
-  var e2 = document.getElementById('modal-err-last-name');
-  var e3 = document.getElementById('modal-err-phone');
-  var e4 = document.getElementById('modal-err-email');
-  if (e1) {
-    e1.textContent = '';
+  var eName = document.getElementById('modal-err-full-name');
+  var ePhone = document.getElementById('modal-err-phone');
+  if (eName) {
+    eName.textContent = '';
   }
-  if (e2) {
-    e2.textContent = '';
+  if (ePhone) {
+    ePhone.textContent = '';
   }
-  if (e3) {
-    e3.textContent = '';
-  }
-  if (e4) {
-    e4.textContent = '';
-  }
-  var first = (document.getElementById('modal-first-name').value || '').trim();
-  var last = (document.getElementById('modal-last-name').value || '').trim();
+  var fullName = (document.getElementById('modal-full-name').value || '').trim();
   var phone = (document.getElementById('modal-phone').value || '').trim();
-  var email = (document.getElementById('modal-email').value || '').trim();
   var ok = true;
-  if (!first) {
-    if (e1) {
-      e1.textContent = 'Required';
-    }
-    ok = false;
-  }
-  if (!last) {
-    if (e2) {
-      e2.textContent = 'Required';
+  if (!fullName) {
+    if (eName) {
+      eName.textContent = 'Required';
     }
     ok = false;
   }
   if (!phone) {
-    if (e3) {
-      e3.textContent = 'Required';
-    }
-    ok = false;
-  }
-  if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    if (e4) {
-      e4.textContent = 'Enter a valid email.';
+    if (ePhone) {
+      ePhone.textContent = 'Required';
     }
     ok = false;
   }
@@ -2832,9 +2797,14 @@ function goModalCheckoutStep2() {
         return;
       }
       startCheckoutFallbackTimer();
-      var zipEl = document.getElementById('modal-billing-zip');
-      if (zipEl) {
-        zipEl.focus();
+      var emEl = document.getElementById('modal-email');
+      if (emEl) {
+        emEl.focus();
+      } else {
+        var zipEl = document.getElementById('modal-billing-zip');
+        if (zipEl) {
+          zipEl.focus();
+        }
       }
     });
   });
@@ -2879,7 +2849,7 @@ function initCheckoutModal() {
       goModalCheckoutStep2();
     });
   }
-  ['modal-first-name', 'modal-last-name', 'modal-phone', 'modal-email'].forEach(function(fid) {
+  ['modal-full-name', 'modal-phone'].forEach(function(fid) {
     var el = document.getElementById(fid);
     if (el) {
       el.addEventListener('input', scheduleModalGHLPartialLead);
@@ -2916,7 +2886,7 @@ function initCheckoutModal() {
       }
       if (!phone) {
         document.getElementById('modal-err-card-general').textContent =
-          'Go back (close and reopen checkout) to enter your phone number.';
+          'Phone is required. Close checkout and start again with your phone filled in.';
         return;
       }
       document.getElementById('modal-pay-btn').disabled = true;
