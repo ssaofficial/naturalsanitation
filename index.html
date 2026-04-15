@@ -974,14 +974,20 @@ head.appendChild(script);
     .modal-summary-skel-bar.price{width:42%;height:26px;margin-top:4px}
     @keyframes skel{0%{background-position:100% 0}100%{background-position:-100% 0}}
     .modal-card-section{margin-top:4px}
-    .modal-card-section.collapsed{display:none}
-    .modal-pay-alt-way{
-      width:100%;margin:8px 0 4px;padding:8px;
-      background:transparent;border:1px dashed var(--border);
-      border-radius:8px;font-size:13px;font-weight:700;color:var(--blue);
-      cursor:pointer;
+    .modal-steps-wrap{position:relative;min-height:220px}
+    #modal-step-1{transition:opacity .28s ease,transform .28s ease}
+    #modal-step-1.modal-step-leave{
+      opacity:0;transform:translateX(-16px);pointer-events:none;
+      position:absolute;left:0;right:0;top:0;z-index:0;
     }
-    .modal-pay-alt-way:hover{border-color:var(--blue);background:var(--blue-light)}
+    #modal-step-2{display:none;opacity:0;transform:translateX(18px);transition:opacity .3s ease .06s,transform .3s ease .06s;position:relative;z-index:1}
+    #modal-step-2.modal-step-active{display:block;opacity:1;transform:translateX(0);z-index:2}
+    .modal-submit-secondary{
+      width:100%;margin-top:14px;padding:14px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);
+      font-size:16px;font-weight:800;cursor:pointer;
+    }
+    .modal-submit-secondary:hover{background:var(--blue-hover)}
+    .modal-submit-secondary:disabled{opacity:.5;cursor:not-allowed}
     #prb-parking{
       position:fixed;left:0;top:0;width:1px;height:1px;opacity:0.02;
       overflow:hidden;pointer-events:none;z-index:-1;
@@ -1484,49 +1490,71 @@ head.appendChild(script);
         <div class="checkout-embed-loading" id="checkout-embed-loading">Preparing secure payment…</div>
 
         <div id="checkout-form-wrap" style="display:none">
-          <div class="express-pay-section" id="express-pay-section">
-            <div class="express-pay-label">Pay instantly with</div>
-            <div id="payment-request-button"></div>
-            <div class="express-divider" id="express-divider-row">or pay with card</div>
-          </div>
-
-          <form id="modal-checkout-form" novalidate>
-            <div class="modal-field">
-              <label for="modal-email">Email</label>
-              <input type="email" id="modal-email" name="email" autocomplete="email" required />
-              <div class="modal-field-error" id="modal-err-email"></div>
-            </div>
-            <div class="modal-field">
-              <label for="modal-name">Name on card</label>
-              <input type="text" id="modal-name" name="name" autocomplete="name" required />
-            </div>
-            <button type="button" class="modal-pay-alt-way" id="modal-show-card" hidden>Pay another way — card</button>
-            <div class="modal-card-section" id="modal-card-section">
+          <div class="modal-steps-wrap" id="modal-steps-wrap">
+            <div id="modal-step-1" class="modal-step-panel">
               <div class="modal-field">
-                <label>Card number</label>
-                <div class="stripe-field" id="modal-card-number"></div>
-                <div class="modal-field-error" id="modal-err-card-number"></div>
+                <label for="modal-first-name">First name</label>
+                <input type="text" id="modal-first-name" name="given-name" autocomplete="given-name" required />
+                <div class="modal-field-error" id="modal-err-first-name"></div>
               </div>
-              <div class="modal-card-row">
-                <div class="modal-field">
-                  <label>Expiry</label>
-                  <div class="stripe-field" id="modal-card-expiry"></div>
-                  <div class="modal-field-error" id="modal-err-card-expiry"></div>
-                </div>
-                <div class="modal-field">
-                  <label>CVC</label>
-                  <div class="stripe-field" id="modal-card-cvc"></div>
-                  <div class="modal-field-error" id="modal-err-card-cvc"></div>
-                </div>
-                <div class="modal-field">
-                  <label for="modal-billing-zip">Billing ZIP</label>
-                  <input type="text" id="modal-billing-zip" maxlength="5" inputmode="numeric" autocomplete="postal-code" />
-                </div>
+              <div class="modal-field">
+                <label for="modal-last-name">Last name</label>
+                <input type="text" id="modal-last-name" name="family-name" autocomplete="family-name" required />
+                <div class="modal-field-error" id="modal-err-last-name"></div>
               </div>
+              <div class="modal-field">
+                <label for="modal-phone">Phone</label>
+                <input type="tel" id="modal-phone" name="phone" autocomplete="tel" required />
+                <div class="modal-field-error" id="modal-err-phone"></div>
+              </div>
+              <div class="modal-field">
+                <label for="modal-email">Email</label>
+                <input type="email" id="modal-email" name="email" autocomplete="email" required />
+                <div class="modal-field-error" id="modal-err-email"></div>
+              </div>
+              <button type="button" class="modal-submit-secondary" id="modal-continue-payment">Continue to payment →</button>
             </div>
-            <div class="modal-field-error" id="modal-err-card-general"></div>
-            <button type="submit" class="modal-submit" id="modal-pay-btn">Complete purchase</button>
-          </form>
+
+            <div id="modal-step-2" class="modal-step-panel" aria-hidden="true">
+              <div class="express-pay-section" id="express-pay-section">
+                <div class="express-pay-label">Pay instantly with</div>
+                <div id="payment-request-button"></div>
+                <div class="express-divider" id="express-divider-row">or pay with card</div>
+              </div>
+
+              <form id="modal-checkout-form" novalidate>
+                <div class="modal-field">
+                  <label for="modal-name">Name on card</label>
+                  <input type="text" id="modal-name" name="ccname" autocomplete="cc-name" required />
+                </div>
+                <div class="modal-card-section" id="modal-card-section">
+                  <div class="modal-field">
+                    <label>Card number</label>
+                    <div class="stripe-field" id="modal-card-number"></div>
+                    <div class="modal-field-error" id="modal-err-card-number"></div>
+                  </div>
+                  <div class="modal-card-row">
+                    <div class="modal-field">
+                      <label>Expiry</label>
+                      <div class="stripe-field" id="modal-card-expiry"></div>
+                      <div class="modal-field-error" id="modal-err-card-expiry"></div>
+                    </div>
+                    <div class="modal-field">
+                      <label>CVC</label>
+                      <div class="stripe-field" id="modal-card-cvc"></div>
+                      <div class="modal-field-error" id="modal-err-card-cvc"></div>
+                    </div>
+                    <div class="modal-field">
+                      <label for="modal-billing-zip">Billing ZIP</label>
+                      <input type="text" id="modal-billing-zip" maxlength="5" inputmode="numeric" autocomplete="postal-code" />
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-field-error" id="modal-err-card-general"></div>
+                <button type="submit" class="modal-submit" id="modal-pay-btn">Complete purchase</button>
+              </form>
+            </div>
+          </div>
         </div>
 
         <div class="checkout-embed-fallback" id="checkout-embed-fallback">
@@ -1584,6 +1612,11 @@ const SS_IDEM_CART = 'ns_idem_cart';
 const SS_IDEM_KEY = 'ns_idem_key';
 const SS_PURCHASE_PI = 'ns_purchase_pi';
 
+/* GoHighLevel — partial lead capture from checkout modal (Step 1); same webhook as checkout.html */
+const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/pit-6925afab-67ff-47f1-b732-63b00ff3d3e8/webhook-trigger/';
+var __ghlModalLeadTimer = null;
+var __ghlModalLeadLastHash = '';
+
 const __checkoutModal = {
   embedReady: false,
   fallbackTimer: null,
@@ -1606,7 +1639,8 @@ const __checkoutModal = {
   stripeFieldFocused: false,
   walletFirstCardCollapsed: false,
   resumeClientSecret: null,
-  resumeIdempotencyEcho: null
+  resumeIdempotencyEcho: null,
+  checkoutStep: 1
 };
 
 function getStripePublishableKey() {
@@ -1852,33 +1886,102 @@ function trackAddPaymentInfoOnce() {
   }
 }
 
+function scheduleModalGHLPartialLead() {
+  if (__ghlModalLeadTimer) {
+    clearTimeout(__ghlModalLeadTimer);
+  }
+  __ghlModalLeadTimer = setTimeout(fireModalGHLPartialLeadIfReady, 800);
+}
+
+function fireModalGHLPartialLeadIfReady() {
+  __ghlModalLeadTimer = null;
+  if (!GHL_WEBHOOK_URL || !/^https:\/\//.test(GHL_WEBHOOK_URL)) {
+    return;
+  }
+  var fn = document.getElementById('modal-first-name');
+  var ln = document.getElementById('modal-last-name');
+  var ph = document.getElementById('modal-phone');
+  var em = document.getElementById('modal-email');
+  if (!fn || !ln || !ph || !em) {
+    return;
+  }
+  var first = (fn.value || '').trim();
+  var last = (ln.value || '').trim();
+  var phone = (ph.value || '').trim();
+  var email = (em.value || '').trim();
+  if (first.length < 1 || last.length < 1 || phone.length < 1 || email.length < 1) {
+    return;
+  }
+  var zip = document.getElementById('zip-input').value.trim();
+  var body = {
+    firstName: first,
+    lastName: last,
+    name: (first + ' ' + last).trim(),
+    email: email,
+    phone: phone,
+    plan: selectedPlan,
+    bins: selectedBins,
+    price: getChargeAmountDollars(),
+    service_zip: zip,
+    source: 'checkout-modal-partial',
+    status: 'partial_lead'
+  };
+  var h = JSON.stringify(body);
+  if (h === __ghlModalLeadLastHash) {
+    return;
+  }
+  __ghlModalLeadLastHash = h;
+  fetch(GHL_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: h
+  }).catch(function() {});
+}
+
+function syncNameOnCardFromStep1() {
+  var fn = document.getElementById('modal-first-name');
+  var ln = document.getElementById('modal-last-name');
+  var nm = document.getElementById('modal-name');
+  if (!fn || !ln || !nm) {
+    return;
+  }
+  nm.value = ((fn.value || '').trim() + ' ' + (ln.value || '').trim()).trim();
+}
+
+function resetModalCheckoutSteps() {
+  __ghlModalLeadLastHash = '';
+  var s1 = document.getElementById('modal-step-1');
+  var s2 = document.getElementById('modal-step-2');
+  if (s1) {
+    s1.classList.remove('modal-step-leave');
+    s1.removeAttribute('aria-hidden');
+  }
+  if (s2) {
+    s2.classList.remove('modal-step-active');
+    s2.style.display = 'none';
+    s2.setAttribute('aria-hidden', 'true');
+  }
+  __checkoutModal.checkoutStep = 1;
+}
+
 function applyWalletFirstLayout() {
   var express = document.getElementById('express-pay-section');
   var cardSec = document.getElementById('modal-card-section');
   var divRow = document.getElementById('express-divider-row');
-  var altBtn = document.getElementById('modal-show-card');
   if (!express || !cardSec) {
     return;
   }
+  cardSec.classList.remove('collapsed');
+  __checkoutModal.walletFirstCardCollapsed = false;
   if (__checkoutModal.prCanPay) {
     express.classList.remove('hidden');
-    cardSec.classList.add('collapsed');
-    __checkoutModal.walletFirstCardCollapsed = true;
-    if (divRow) {
-      divRow.style.display = 'none';
-    }
-    if (altBtn) {
-      altBtn.hidden = false;
-    }
-  } else {
-    express.classList.add('hidden');
-    cardSec.classList.remove('collapsed');
-    __checkoutModal.walletFirstCardCollapsed = false;
     if (divRow) {
       divRow.style.display = '';
     }
-    if (altBtn) {
-      altBtn.hidden = true;
+  } else {
+    express.classList.add('hidden');
+    if (divRow) {
+      divRow.style.display = 'none';
     }
   }
 }
@@ -2269,6 +2372,21 @@ function buildPaymentIntentRequestBody(emailOpt) {
   var charge = getChargeAmountDollars();
   var cents = Math.round(charge * 100);
   var idem = getOrCreateIdempotencyKey();
+  var phoneEl = document.getElementById('modal-phone');
+  var phoneVal = phoneEl ? (phoneEl.value || '').trim() : '';
+  var meta = {
+    plan: selectedPlan,
+    bins: String(selectedBins),
+    service_zip: zip,
+    charge_dollars: String(charge),
+    charge_cents: String(cents),
+    single_charge: 'true',
+    next_charge: '',
+    idempotency_key: idem
+  };
+  if (phoneVal) {
+    meta.phone = phoneVal.slice(0, 40);
+  }
   return {
     plan: selectedPlan,
     bins: selectedBins,
@@ -2281,16 +2399,7 @@ function buildPaymentIntentRequestBody(emailOpt) {
     capture_method: 'automatic',
     email: emailOpt || undefined,
     idempotencyKey: idem,
-    metadata: {
-      plan: selectedPlan,
-      bins: String(selectedBins),
-      service_zip: zip,
-      charge_dollars: String(charge),
-      charge_cents: String(cents),
-      single_charge: 'true',
-      next_charge: '',
-      idempotency_key: idem
-    }
+    metadata: meta
   };
 }
 
@@ -2396,7 +2505,14 @@ function getModalFocusables() {
   return Array.prototype.slice.call(
     panel.querySelectorAll('a[href], button:not([disabled]), textarea, input, select')
   ).filter(function(el) {
-    return el.offsetParent !== null && el.getAttribute('aria-hidden') !== 'true';
+    if (el.getAttribute('aria-hidden') === 'true') {
+      return false;
+    }
+    var s2 = document.getElementById('modal-step-2');
+    if (s2 && s2.getAttribute('aria-hidden') === 'true' && s2.contains(el)) {
+      return false;
+    }
+    return el.offsetParent !== null;
   });
 }
 
@@ -2562,32 +2678,25 @@ function openCheckoutModalShell() {
 
   setModalSummaryReadyState(false);
   loading.style.display = 'block';
-  loading.textContent = 'Preparing secure payment…';
+  loading.textContent = 'Loading…';
   wrap.style.display = 'none';
   fallback.classList.remove('show');
+  resetModalCheckoutSteps();
 
   refreshCheckoutModalSummary();
   persistCheckoutContext();
 
-  startCheckoutFallbackTimer();
-
-  requestAnimationFrame(function() {
-    var ok = mountOrUpdateStripeInModal();
-    if (!ok) {
-      setModalSummaryReadyState(true);
-      loading.textContent = 'Opening secure checkout…';
-      fallback.classList.add('show');
-      document.getElementById('checkout-fallback-link').href = buildCheckoutUrl();
-    }
-  });
+  setModalSummaryReadyState(true);
+  loading.style.display = 'none';
+  wrap.style.display = 'block';
 
   __checkoutModal.trapHandler = onCheckoutModalKeydown;
   document.addEventListener('keydown', __checkoutModal.trapHandler, true);
 
   setTimeout(function() {
-    var email = document.getElementById('modal-email');
-    if (wrap.style.display !== 'none' && email) {
-      email.focus();
+    var first = document.getElementById('modal-first-name');
+    if (wrap.style.display !== 'none' && first) {
+      first.focus();
     } else {
       var focusables = getModalFocusables();
       if (focusables.length) {
@@ -2600,6 +2709,9 @@ function openCheckoutModalShell() {
 }
 
 function shouldConfirmAbandonPayment() {
+  if (__checkoutModal.checkoutStep !== 2) {
+    return false;
+  }
   return !!(__checkoutModal.stripeFieldFocused || __checkoutModal.cardFieldDirty);
 }
 
@@ -2626,6 +2738,7 @@ function closeCheckout() {
   }
   __checkoutModal.cardFieldDirty = false;
   __checkoutModal.stripeFieldFocused = false;
+  resetModalCheckoutSteps();
   if (__checkoutModal.lastFocus && typeof __checkoutModal.lastFocus.focus === 'function') {
     __checkoutModal.lastFocus.focus();
   }
@@ -2645,6 +2758,86 @@ function toggleScienceTab(tabId, btn) {
   btn.classList.add('active');
   document.querySelectorAll('.science-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('science-' + tabId).classList.add('active');
+}
+
+function goModalCheckoutStep2() {
+  var e1 = document.getElementById('modal-err-first-name');
+  var e2 = document.getElementById('modal-err-last-name');
+  var e3 = document.getElementById('modal-err-phone');
+  var e4 = document.getElementById('modal-err-email');
+  if (e1) {
+    e1.textContent = '';
+  }
+  if (e2) {
+    e2.textContent = '';
+  }
+  if (e3) {
+    e3.textContent = '';
+  }
+  if (e4) {
+    e4.textContent = '';
+  }
+  var first = (document.getElementById('modal-first-name').value || '').trim();
+  var last = (document.getElementById('modal-last-name').value || '').trim();
+  var phone = (document.getElementById('modal-phone').value || '').trim();
+  var email = (document.getElementById('modal-email').value || '').trim();
+  var ok = true;
+  if (!first) {
+    if (e1) {
+      e1.textContent = 'Required';
+    }
+    ok = false;
+  }
+  if (!last) {
+    if (e2) {
+      e2.textContent = 'Required';
+    }
+    ok = false;
+  }
+  if (!phone) {
+    if (e3) {
+      e3.textContent = 'Required';
+    }
+    ok = false;
+  }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    if (e4) {
+      e4.textContent = 'Enter a valid email.';
+    }
+    ok = false;
+  }
+  if (!ok) {
+    return;
+  }
+  syncNameOnCardFromStep1();
+  var s1 = document.getElementById('modal-step-1');
+  var s2 = document.getElementById('modal-step-2');
+  if (!s1 || !s2) {
+    return;
+  }
+  s1.classList.add('modal-step-leave');
+  s1.setAttribute('aria-hidden', 'true');
+  s2.style.display = 'block';
+  s2.setAttribute('aria-hidden', 'false');
+  void s2.offsetWidth;
+  s2.classList.add('modal-step-active');
+  __checkoutModal.checkoutStep = 2;
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      var okMount = mountOrUpdateStripeInModal();
+      if (!okMount) {
+        setModalSummaryReadyState(true);
+        document.getElementById('checkout-embed-fallback').classList.add('show');
+        document.getElementById('checkout-fallback-link').href = buildCheckoutUrl();
+        return;
+      }
+      startCheckoutFallbackTimer();
+      var zipEl = document.getElementById('modal-billing-zip');
+      if (zipEl) {
+        zipEl.focus();
+      }
+    });
+  });
 }
 
 function initCheckoutModal() {
@@ -2680,20 +2873,18 @@ function initCheckoutModal() {
       }, 0);
     });
   }
-  var showCard = document.getElementById('modal-show-card');
-  if (showCard) {
-    showCard.addEventListener('click', function() {
-      var sec = document.getElementById('modal-card-section');
-      var divRow = document.getElementById('express-divider-row');
-      if (sec) {
-        sec.classList.remove('collapsed');
-      }
-      if (divRow) {
-        divRow.style.display = '';
-      }
-      showCard.hidden = true;
+  var contPay = document.getElementById('modal-continue-payment');
+  if (contPay) {
+    contPay.addEventListener('click', function() {
+      goModalCheckoutStep2();
     });
   }
+  ['modal-first-name', 'modal-last-name', 'modal-phone', 'modal-email'].forEach(function(fid) {
+    var el = document.getElementById(fid);
+    if (el) {
+      el.addEventListener('input', scheduleModalGHLPartialLead);
+    }
+  });
   document.getElementById('checkout-fallback-link').addEventListener('click', function(e) {
     e.preventDefault();
     goToFallbackCheckout();
@@ -2708,6 +2899,7 @@ function initCheckoutModal() {
       }
       var email = document.getElementById('modal-email').value.trim();
       var name = document.getElementById('modal-name').value.trim();
+      var phone = (document.getElementById('modal-phone') && document.getElementById('modal-phone').value.trim()) || '';
       var zipBill = document.getElementById('modal-billing-zip').value.trim();
       document.getElementById('modal-err-email').textContent = '';
       document.getElementById('modal-err-card-general').textContent = '';
@@ -2716,6 +2908,15 @@ function initCheckoutModal() {
         return;
       }
       if (!name) {
+        syncNameOnCardFromStep1();
+        name = document.getElementById('modal-name').value.trim();
+      }
+      if (!name) {
+        return;
+      }
+      if (!phone) {
+        document.getElementById('modal-err-card-general').textContent =
+          'Go back (close and reopen checkout) to enter your phone number.';
         return;
       }
       document.getElementById('modal-pay-btn').disabled = true;
@@ -2729,6 +2930,7 @@ function initCheckoutModal() {
             billing_details: {
               name: name,
               email: email,
+              phone: phone,
               address: { postal_code: zipBill }
             }
           }
@@ -2762,6 +2964,7 @@ function initCheckoutModal() {
               billing_details: {
                 name: name,
                 email: email,
+                phone: phone,
                 address: { postal_code: zipBill }
               }
             }
@@ -2789,10 +2992,11 @@ function initCheckoutModal() {
           document.getElementById('modal-err-card-general').textContent =
             'Payment could not be verified. Please try again or use the checkout link below.';
         }
-      }).catch(function() {
+      }).catch(function(err) {
         document.getElementById('modal-pay-btn').disabled = false;
-        document.getElementById('modal-err-card-general').textContent =
-          'Could not reach payment server. Use the link below or try again.';
+        var msg = err && err.message ? err.message : 'Could not reach payment server. Try the link below.';
+        document.getElementById('modal-err-card-general').textContent = msg;
+        console.error('Modal payment error:', err);
         document.getElementById('checkout-embed-fallback').classList.add('show');
         document.getElementById('checkout-fallback-link').href = buildCheckoutUrl();
       });
@@ -2827,11 +3031,7 @@ if (typeof fbq !== 'undefined') {
   fbq('track','ViewContent',{ content_name:'Natural Sanitation Landing Page' });
 }
 
-/*
-  GHL_WEBHOOK_URL — replace in fireGHL()
-  CAPI_WORKER_URL — replace in fireCAPI()
-  See NS_Tracking_Integration_Guide.md for full instructions.
-*/
+/* GHL partial lead: GHL_WEBHOOK_URL + scheduleModalGHLPartialLead (Step 1). */
 </script>
 
 </body>
