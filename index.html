@@ -938,6 +938,23 @@ head.appendChild(script);
       background:#fff;
     }
     .stripe-field.StripeElement--focus{border-color:var(--blue)}
+    /* Step 2 payment form: compact field spacing */
+    #modal-step-2 .modal-field{margin-bottom:8px}
+    #modal-step-2 .modal-field label{margin-bottom:3px}
+    #modal-step-2 .modal-card-section{margin-top:2px}
+    #modal-step-2 .stripe-field{
+      padding:10px 10px;
+      min-height:40px;
+      box-sizing:border-box;
+    }
+    #modal-step-2 .modal-field-error{margin-top:2px;min-height:12px;font-size:11px;line-height:1.25}
+    #modal-step-2 .modal-card-row{gap:8px}
+    #modal-step-2 .modal-card-row > .modal-field{margin-bottom:8px}
+    @media(max-width:480px){
+      #modal-step-2 .modal-field{margin-bottom:8px}
+      #modal-step-2 .stripe-field{padding:10px 10px;min-height:40px}
+      #modal-step-2 .modal-card-row{gap:8px}
+    }
     .modal-card-row{display:grid;grid-template-columns:1fr 90px 72px;gap:8px}
     @media(max-width:480px){.modal-card-row{grid-template-columns:1fr}}
     .modal-submit{
