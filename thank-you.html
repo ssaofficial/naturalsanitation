@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>You're on the route – Natural Sanitation</title>
+  <title>You’re routed — Natural Sanitation</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <script src="https://js.stripe.com/v3/"></script>
+  <script>window.__NS_META_PIXEL_ID = window.__NS_META_PIXEL_ID || '499919262310418';</script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
     n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
     document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init','499919262310418');
+    fbq('init', window.__NS_META_PIXEL_ID);
     fbq('track','PageView');
   </script>
   <noscript><img height="1" width="1" style="display:none" alt=""
     src="https://www.facebook.com/tr?id=499919262310418&ev=PageView&noscript=1"/></noscript>
-  <!-- Replace G-XXXXXXXXXX with your GA4 measurement ID -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -29,21 +28,25 @@
     gtag('config', 'G-XXXXXXXXXX', { send_page_view: true });
   </script>
   <style>
-    :root{--cream:#FAFAF7;--surface:#fff;--ink:#0F1115;--slate:#5A6371;--teal:#00A88E;--teal-dim:#e6faf6;--border:#E5E7EB;--green:#16A34A}
+    :root{--cream:#FAFAF7;--surface:#fff;--ink:#0F1115;--slate:#5A6371;--teal:#0f766e;--teal-dim:#ecfdf5;--border:#E5E7EB}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Inter,system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;font-size:17px;min-height:100vh}
     .wrap{max-width:700px;margin:0 auto;padding:32px 20px 48px}
-    .hero-t{font-size:clamp(2rem,6vw,3.25rem);font-weight:700;color:var(--teal);line-height:1.1;margin-bottom:12px}
-    .sub{font-size:22px;color:var(--ink);font-weight:600;margin-bottom:20px}
+    .hero-t{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:800;color:var(--ink);line-height:1.15;margin-bottom:12px}
+    .sub{font-size:18px;color:var(--slate);font-weight:600;margin-bottom:20px}
     p{color:var(--slate);margin-bottom:14px}
-    .card{background:var(--teal-dim);border:1px solid #b2ebe0;border-radius:14px;padding:22px;margin:28px 0}
+    ul.next{margin:16px 0 20px 1.2em;color:var(--slate)}
+    ul.next li{margin-bottom:8px}
+    .card{background:var(--teal-dim);border:1px solid #99f6e4;border-radius:14px;padding:22px;margin:28px 0}
     .card h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
     .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px}
     .row:last-child{border-bottom:none}
     .row span:first-child{color:var(--slate)}
     .row span:last-child{font-weight:600;color:var(--ink);text-align:right}
+    .proof-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+    .proof-pair img{width:100%;border-radius:10px;border:1px solid var(--border)}
     .cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
-    .btn{min-height:60px;padding:0 22px;border-radius:10px;font-size:16px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;flex:1;min-width:200px}
+    .btn{min-height:56px;padding:0 22px;border-radius:10px;font-size:16px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;flex:1;min-width:200px}
     .btn-primary{background:var(--teal);color:#fff}
     .btn-secondary{background:transparent;color:var(--ink);border:2px solid var(--border)}
     .trust{font-size:14px;color:var(--slate);text-align:center;margin-top:24px}
@@ -53,45 +56,51 @@
   </style>
 </head>
 <body>
-  <script>
-  (function () {
-    var p = new URLSearchParams(location.search);
-    document.body.setAttribute('data-event-id', p.get('event_id') || '');
-    document.body.setAttribute('data-order-id', p.get('txn') || '');
-    document.body.setAttribute('data-plan', (p.get('plan') || 'annual').toLowerCase());
-  })();
-  </script>
   <div class="wrap">
-    <p class="hero-t">✅ You're locked in.</p>
-    <p class="sub" id="welcome-line">Welcome to the route.</p>
-    <p>Manny will text you within 24 hours to confirm your route day. Your first clean happens on your next regular trash pickup.</p>
-    <p>Watch your phone for a text with your before-and-after photos right after your first clean. Most people forward them to their spouse within 60 seconds. Some text them to the entire group chat.</p>
+    <p class="hero-t" id="main-h">You’re routed. Check your phone.</p>
+    <p class="sub" id="welcome-line">We just texted your confirmation and first-clean window.</p>
+    <p>Your route runs on your normal trash pickup week. Leave bins where we can reach them (side of house, garage, or end of driveway — HOA-safe).</p>
+
+    <ul class="next">
+      <li>Watch for Manny’s text with your exact window.</li>
+      <li>First clean is often within a few days in open ZIPs.</li>
+      <li>Reply to that same thread if anything looks off.</li>
+    </ul>
+
+    <p style="font-weight:600;color:var(--ink)">Proof from the field</p>
+    <div class="proof-pair">
+      <img src="./before-bin-1.png" alt="Before steam cleaning on a local route" width="400" height="300" loading="lazy" />
+      <img src="./after-bin-1.png" alt="After steam cleaning on a local route" width="400" height="300" loading="lazy" />
+    </div>
 
     <div class="card">
-      <h2>Order confirmed</h2>
+      <h2>Order summary</h2>
       <div class="row"><span>Plan:</span><span id="o-plan">—</span></div>
       <div class="row"><span>Bins:</span><span id="o-bins">—</span></div>
       <div class="row"><span>Amount:</span><span id="o-amt">—</span></div>
       <div class="row"><span>Receipt sent:</span><span id="o-email">—</span></div>
       <div class="row"><span>Service area:</span><span id="o-city">—</span></div>
-      <p style="margin-top:16px;margin-bottom:0;font-size:15px">Questions? Text Manny directly: <a href="tel:+15865006794" style="color:var(--teal);font-weight:600">(586) 500-6794</a></p>
+      <p style="margin-top:16px;margin-bottom:0;font-size:15px">Questions? Text Manny: <a href="tel:+15865006794" style="color:var(--teal);font-weight:600">(586) 500-6794</a></p>
     </div>
 
     <div class="cta-row">
-      <a class="btn btn-primary" id="vcard-btn" href="#">📱 Save Manny's Number</a>
-      <button type="button" class="btn btn-secondary" id="share-btn">🏠 Tell a Neighbor — Earn $25 Credit</button>
+      <a class="btn btn-primary" id="cal-btn" href="#" target="_blank" rel="noopener">Add to calendar</a>
+      <a class="btn btn-secondary" id="vcard-btn" href="#">Save Manny’s number</a>
     </div>
-    <p class="trust">Already on the route: 1,400+ Metro Detroit homes<br />⭐ 4.9 stars · 250+ Google reviews · 6+ years</p>
+    <div class="cta-row">
+      <button type="button" class="btn btn-secondary" id="share-btn" style="flex:1">Tell a neighbor</button>
+    </div>
+    <p class="trust">1,400+ Metro Detroit homes · 4.9 stars · 250+ Google reviews</p>
 
-    <p class="ps"><strong>P.S.</strong> — Manny here. Real talk: most new customers text me within the first week with one of two messages. Either "wow, the photos are wild" or "my neighbor wants in too — can you text them?" Either one works. I'll be in touch.</p>
+    <p class="ps"><strong>P.S.</strong> — If the text didn’t land in 10 minutes, check spam — then text us at the number above with your ZIP.</p>
 
     <footer>
       <strong>Natural Sanitation</strong><br />
-      Texted before-and-after photos. Every clean. Every time.<br /><br />
-      <a href="tel:+15865006794">📞 (586) 500-6794</a> — Text Manny directly<br />
-      <a href="mailto:naturalsanitation@gmail.com">✉ naturalsanitation@gmail.com</a><br /><br />
+      Before/after photos every visit.<br /><br />
+      <a href="tel:+15865006794">(586) 500-6794</a><br />
+      <a href="mailto:naturalsanitation@gmail.com">naturalsanitation@gmail.com</a><br /><br />
       <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms-of-service.html">Terms of Service</a> · <a href="sms-consent.html">SMS Consent</a> · <a href="refund-policy.html">Refund Policy</a><br /><br />
-      © 2025 Natural Sanitation LLC · Metro Detroit, Michigan
+      © 2026 Natural Sanitation LLC · Metro Detroit, Michigan
     </footer>
   </div>
 
@@ -106,7 +115,7 @@
   var phone = (p.get('phone') || '').trim();
   var city = (p.get('city') || '').trim();
   var eventId = p.get('event_id') || '';
-  var META_PIXEL_ID = '499919262310418';
+  var META_PIXEL_ID = window.__NS_META_PIXEL_ID || '499919262310418';
 
   function normalizePhoneForMetaHash(phoneRaw) {
     var d = String(phoneRaw || '').replace(/\D/g, '');
@@ -126,37 +135,39 @@
     });
   }
 
-  document.getElementById('welcome-line').textContent =
-    first ? ('Welcome to the route, ' + first + '.') : 'Welcome to the route.';
+  if (first) {
+    document.getElementById('welcome-line').textContent =
+      'We just texted your confirmation and first-clean window, ' + first + '.';
+  }
 
   var planLabel = plan === 'monthly' ? 'Monthly' : plan === 'quarterly' ? 'Quarterly' : 'Annual';
   document.getElementById('o-plan').textContent = planLabel;
   document.getElementById('o-bins').textContent = bins + ' bin' + (bins === 1 ? '' : 's');
-  document.getElementById('o-amt').textContent = amount ? ('$' + amount + ' charged today') : '—';
+  document.getElementById('o-amt').textContent = amount ? ('$' + amount + ' charged') : '—';
   document.getElementById('o-email').textContent = email || '—';
   document.getElementById('o-city').textContent = city ? (city + ', MI') : 'Metro Detroit, MI';
 
-  var val = parseFloat(String(amount).replace(/[^0-9.]/g, '')) || 0;
+  var cal = document.getElementById('cal-btn');
+  var title = encodeURIComponent('Natural Sanitation — first bin clean');
+  var details = encodeURIComponent('Leave bins accessible for the tech. Text Manny: (586) 500-6794');
+  cal.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + title + '&details=' + details;
+
   var emNorm = email.toLowerCase().trim();
   Promise.all([sha256Hex(emNorm), sha256Hex(normalizePhoneForMetaHash(phone))]).then(function (hashes) {
     if (typeof fbq === 'undefined') return;
-    var emH = hashes[0];
-    var phH = hashes[1];
     var match = {};
-    if (emH) match.em = emH;
-    if (phH) match.ph = phH;
+    if (hashes[0]) match.em = hashes[0];
+    if (hashes[1]) match.ph = hashes[1];
     if (Object.keys(match).length) fbq('init', META_PIXEL_ID, match);
-    var purchaseOpts = {};
-    if (eventId) purchaseOpts.eventID = eventId;
-    fbq('track', 'Purchase', { value: val, currency: 'USD', content_name: planLabel, num_items: bins }, purchaseOpts);
+    var opts = eventId ? { eventID: eventId + '_ty_view' } : {};
+    fbq('track', 'ViewContent', { content_name: 'thank_you_confirmation' }, opts);
   });
 
   if (typeof gtag !== 'undefined') {
-    gtag('event', 'purchase', {
+    gtag('event', 'thank_you_confirmation', {
       transaction_id: eventId || p.get('txn') || 'ty_' + Date.now(),
-      value: val,
+      value: parseFloat(String(amount).replace(/[^0-9.]/g, '')) || 0,
       currency: 'USD',
-      items: [{ item_name: planLabel, quantity: bins }]
     });
   }
 
@@ -183,8 +194,11 @@
   });
 
   document.getElementById('share-btn').addEventListener('click', function() {
-    var shareUrl = 'https://naturalsanitationsignup.com/index-v2.html';
-    var text = 'I just signed up for Natural Sanitation — they steam-clean garbage bins and text before/after photos. Worth a look: ';
+    var shareUrl =
+      (location.protocol === 'http:' || location.protocol === 'https:'
+        ? location.origin
+        : 'https://naturalsanitationsignup.com') + '/index-v2.html';
+    var text = 'I booked Natural Sanitation for curbside bin steam cleaning — ';
     if (navigator.share) {
       navigator.share({ title: 'Natural Sanitation', text: text, url: shareUrl }).catch(function(){});
     } else {

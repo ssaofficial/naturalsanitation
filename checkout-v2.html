@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pay & lock your route — Natural Sanitation</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Set window.__NS_META_PIXEL_ID before this block to override the default Pixel ID. Meta browser pixel does not use an access token. -->
+  <script>window.__NS_META_PIXEL_ID = window.__NS_META_PIXEL_ID || '499919262310418';</script>
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', window.__NS_META_PIXEL_ID);
+    fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" alt=""
+    src="https://www.facebook.com/tr?id=499919262310418&ev=PageView&noscript=1"/></noscript>
+  <script>
+    var head = document.head;
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = "https://t.naturalsanitations.com/v1/lst/universal-script?ph=5fecc4f438ca2193e96ee1cd7f0374180f426ce110a45be4dbf15f3ca233b720&tag=!clicked&ref_url=" + encodeURI(document.URL);
+    head.appendChild(script);
+  </script>
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    :root {
+      --bg: #f0f2f4;
+      --surface: #fff;
+      --ink: #111827;
+      --muted: #4b5563;
+      --cta: #0f766e;
+      --cta-hover: #0d9488;
+      --border: #e5e7eb;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 17px; line-height: 1.55; min-height: 100vh; }
+    .hdr { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .hdr-mid { text-align: center; flex: 1; min-width: 200px; font-weight: 700; font-size: 14px; }
+    .hdr-mid span { color: var(--muted); font-weight: 600; }
+    .zip-pill { font-size: 13px; font-weight: 700; background: #ecfdf5; color: #065f46; padding: 6px 12px; border-radius: 999px; }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 20px 18px 100px; }
+    h1 { font-size: clamp(22px, 5vw, 28px); font-weight: 800; margin-bottom: 8px; }
+    .sub { color: var(--muted); font-size: 15px; margin-bottom: 20px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+    .row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; font-size: 15px; border-bottom: 1px dashed var(--border); }
+    .row:last-of-type { border-bottom: none; }
+    .seg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .seg button { flex: 1; min-width: 72px; padding: 12px 10px; border-radius: 10px; border: 2px solid var(--border); background: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .seg button.is-on { border-color: var(--cta); background: #f0fdfa; color: var(--ink); }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+    .field input { width: 100%; min-height: 52px; border: 2px solid #111; border-radius: 10px; padding: 0 12px; font-size: 16px; }
+    .field input:focus, .pay-btn button:focus { outline: 3px solid rgba(15, 118, 110, 0.35); outline-offset: 2px; }
+    .stripe-field { padding: 12px; border: 2px solid #111; border-radius: 10px; background: #fff; }
+    .trust-pay { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin: 16px 0; font-size: 12px; color: var(--muted); }
+    .pay-icons { font-size: 20px; letter-spacing: 4px; }
+    .reassure { font-size: 14px; color: var(--muted); margin: 12px 0; }
+    .reassure li { margin-bottom: 6px; margin-left: 1.1em; }
+    .pay-btn button { width: 100%; min-height: 58px; background: var(--cta); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 800; cursor: pointer; }
+    .pay-btn button:hover { background: var(--cta-hover); }
+    .micro { text-align: center; font-size: 13px; color: var(--muted); margin-top: 10px; }
+    .err { color: #b91c1c; font-size: 14px; min-height: 20px; }
+    .processing { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.92); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; }
+    .processing.show { display: flex; }
+    .spin { width: 40px; height: 40px; border: 3px solid #ddd; border-top-color: var(--cta); border-radius: 50%; animation: sp 0.7s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+    .review-strip { text-align: center; font-size: 14px; color: var(--muted); margin-top: 20px; }
+    .review-strip a { color: var(--cta); font-weight: 600; }
+    #gate-msg { color: #b91c1c; font-weight: 600; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <strong>Natural Sanitation</strong>
+    <div class="hdr-mid">2 bins · <span>$249/year</span> — <span>$39/month</span> available</div>
+    <span class="zip-pill" id="zip-badge-pay">ZIP —</span>
+  </header>
+
+  <div class="wrap">
+    <p id="gate-msg" role="alert"></p>
+    <div id="pay-wrap">
+      <h1>Lock your route</h1>
+      <p class="sub">Step 2 of 2 · Payment · Same prices you saw on the last page.</p>
+
+      <div class="card">
+        <h2>Order summary</h2>
+        <div class="row"><span id="sum-plan-line">2 bins · Annual Plan</span></div>
+        <div class="row"><span id="sum-price-line">$249/year billed today</span></div>
+        <p style="margin-top:12px;font-size:15px;color:var(--muted)" id="route-window-line">Your route: …</p>
+        <p style="margin-top:14px;font-size:13px;font-weight:700;color:var(--muted)">Plan</p>
+        <div class="seg" role="group" aria-label="Billing plan">
+          <button type="button" data-pay-plan="annual">Annual</button>
+          <button type="button" data-pay-plan="monthly">Monthly</button>
+          <button type="button" data-pay-plan="quarterly">Quarterly</button>
+        </div>
+        <p style="margin-top:14px;font-size:13px;font-weight:700;color:var(--muted)">Bins on property</p>
+        <div class="seg" role="group" aria-label="Bin count">
+          <button type="button" data-pay-bins="1">1</button>
+          <button type="button" data-pay-bins="2">2</button>
+          <button type="button" data-pay-bins="3">3</button>
+          <button type="button" data-pay-bins="4">4</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Contact (from Step 1)</h2>
+        <div class="field"><label for="pay-name">Full name</label><input id="pay-name" type="text" autocomplete="name" readonly /></div>
+        <div class="field"><label for="pay-email">Email</label><input id="pay-email" type="email" autocomplete="email" /></div>
+        <div class="field"><label for="pay-phone">Mobile</label><input id="pay-phone" type="tel" autocomplete="tel" inputmode="tel" /></div>
+      </div>
+
+      <div class="card">
+        <h2>Secure payment</h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px">By paying you agree we may text this number about scheduling and photos (reply STOP to opt out). See SMS terms linked from the landing page.</p>
+        <div class="trust-pay">
+          <span class="pay-icons" aria-hidden="true">💳</span>
+          <span>Apple Pay · Google Pay · Visa · Mastercard · Amex · 256-bit secure</span>
+        </div>
+        <div id="express-pay-section">
+          <div style="text-align:center;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Pay instantly</div>
+          <div id="payment-request-button"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:13px"><span style="flex:1;border-top:1px solid var(--border)"></span>or card<span style="flex:1;border-top:1px solid var(--border)"></span></div>
+        </div>
+        <div class="field"><label>Card number</label><div class="stripe-field" id="card-number-element"></div><div class="err" id="err-cn"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div class="field" style="margin-bottom:0"><label>Expiry</label><div class="stripe-field" id="card-expiry-element"></div><div class="err" id="err-ce"></div></div>
+          <div class="field" style="margin-bottom:0"><label>CVC</label><div class="stripe-field" id="card-cvc-element"></div><div class="err" id="err-cv"></div></div>
+          <div class="field" style="margin-bottom:0"><label for="pop-bzip">Billing ZIP</label><input id="pop-bzip" maxlength="5" inputmode="numeric" autocomplete="postal-code" /></div>
+        </div>
+        <div class="err" id="err-card"></div>
+        <ul class="reassure">
+          <li>After pickup service</li>
+          <li>400° steam sanitizes lid to wheels</li>
+          <li>We text before/after photos every visit</li>
+        </ul>
+        <div class="pay-btn">
+          <button type="button" id="pop-pay">Pay and lock your route</button>
+          <p class="micro">You’ll get a text confirmation in minutes.</p>
+        </div>
+      </div>
+
+      <p class="review-strip">4.9 average · 250+ local reviews · <a href="https://www.google.com/search?q=Natural+Sanitation+Metro+Detroit+reviews" target="_blank" rel="noopener">Read reviews</a></p>
+    </div>
+  </div>
+
+  <div class="processing" id="processing"><div class="spin"></div><span>Processing…</span></div>
+  <script src="checkout-v2.js" defer></script>
+</body>
+</html>

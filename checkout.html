@@ -434,12 +434,12 @@ head.appendChild(script);
     <div class="summary-tagline">Garbage Bin Steam Cleaning</div>
     <hr class="summary-divider" />
     <div class="summary-plan-name" id="s-plan-name">Annual Plan</div>
-    <div class="summary-price" id="s-price">$250</div>
+    <div class="summary-price" id="s-price">$199</div>
     <div class="summary-period" id="s-period">per year</div>
-    <div class="summary-bins" id="s-bins">2 bins · Oakland &amp; Macomb County</div>
+    <div class="summary-bins" id="s-bins">1 bin · Oakland &amp; Macomb County</div>
     <div class="summary-split" id="s-split">
-      <strong>$250 today</strong><br>
-      Annual $250/yr billed today.<br>
+      <strong>$199 today</strong><br>
+      Annual $199/yr billed today.<br>
       No contract · Cancel any time
     </div>
     <hr class="summary-divider" />
@@ -498,11 +498,25 @@ const PRICE_IDS = {
 */
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/pit-6925afab-67ff-47f1-b732-63b00ff3d3e8/webhook-trigger/';
 
-/* ── READ URL PARAMS ── */
+/* ── READ URL PARAMS (tiers must match index.html PRICING) ── */
+const TIER = {
+  annual: { 1: 199, 2: 249, 3: 299, 4: 349 },
+  monthly: { 1: 33, 2: 39, 3: 45, 4: 50 },
+  quarterly: { 1: 94, 2: 124, 3: 149, 4: 164 }
+};
+function tierPrice(plan, bins) {
+  const b = Math.min(4, Math.max(1, bins));
+  if (plan === 'monthly') return TIER.monthly[b];
+  if (plan === 'quarterly') return TIER.quarterly[b];
+  return TIER.annual[b];
+}
 const params = new URLSearchParams(window.location.search);
 const selectedPlan = params.get('plan') || 'annual';
-const selectedBins = parseInt(params.get('bins') || '2', 10);
-const selectedPrice = parseInt(params.get('price') || '250', 10);
+const selectedBins = Math.min(4, Math.max(1, parseInt(params.get('bins') || '1', 10)));
+const selectedPrice = parseInt(
+  params.get('price') || String(tierPrice(selectedPlan, selectedBins)),
+  10
+);
 const urlZip = (params.get('zip') || '').trim();
 
 /* ── POPULATE ORDER SUMMARY ── */

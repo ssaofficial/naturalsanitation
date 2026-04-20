@@ -1366,7 +1366,7 @@ head.appendChild(script);
         <button type="button" class="cta-btn cta-qualify" id="vsl-cta" onclick="scrollToZipSection()" style="margin-top:12px;width:100%;max-width:340px">
           Check My Area
         </button>
-        <p class="hero-cta-note">$39/mo. No contract. Cancel any time.</p>
+        <p class="hero-cta-note">From $33/mo or $199/yr (1 bin). 2 bins $39/mo or $249/yr. No contract.</p>
       </div>
 
       <!-- PLAN SELECTOR -->
@@ -1423,8 +1423,8 @@ head.appendChild(script);
                 <span class="plan-name-caps">Annual plan</span>
                 <span class="best-value-badge">Best Value</span>
               </div>
-              <div class="plan-price-big" id="annual-price-big">$250/year</div>
-              <div class="plan-per-bin-line" id="annual-per-bin-line">$250 per bin × 1 bin</div>
+              <div class="plan-price-big" id="annual-price-big">$199/year</div>
+              <div class="plan-per-bin-line" id="annual-per-bin-line">Plan total for 1 bin · one payment per year</div>
               <p class="plan-note-plain">Billed once per year.</p>
             </div>
             <div class="plan-tile" id="tile-monthly" role="button" tabindex="0" onclick="selectPlan('monthly')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlan('monthly');}">
@@ -1432,17 +1432,17 @@ head.appendChild(script);
               <div class="plan-tile-top">
                 <span class="plan-name-caps">Monthly plan</span>
               </div>
-              <div class="plan-price-big" id="monthly-price-big">$39/month</div>
-              <div class="plan-per-bin-line" id="monthly-per-bin-line">$39 per month per bin × 1 bin</div>
+              <div class="plan-price-big" id="monthly-price-big">$33/month</div>
+              <div class="plan-per-bin-line" id="monthly-per-bin-line">Plan total for 1 bin · billed monthly</div>
               <p class="plan-note-plain">No contract. Cancel any time.</p>
             </div>
           </div>
 
           <p class="pricing-cta-trust" id="pricing-cta-trust">Secure checkout · Billed through Jobber · Cancel anytime on monthly plan</p>
           <button type="button" class="cta-btn" id="main-cta" onclick="openCheckout()" disabled>
-            Continue with Annual Plan — $250/year
+            Continue with Annual Plan — $199/year
           </button>
-          <p class="hero-cta-note plan-cta-note">$39/mo. No contract. Cancel any time. Before-and-after photos after every clean.</p>
+          <p class="hero-cta-note plan-cta-note">From $33/mo or $199/yr (1 bin) · 2 bins $39/mo or $249/yr · No contract · Before-and-after photos after every clean.</p>
         </div>
 
         <div id="checkout-pricing-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -2392,7 +2392,7 @@ head.appendChild(script);
           How does pricing work for multiple bins?
           <span class="faq-icon">▾</span>
         </button>
-        <div class="faq-a">Annual (2/3/4 bins): $250 / $299 / $349 per year. Monthly: $39 / $45 / $50 per month. Quarterly: $125 / $155 / $185 per quarter. Month to month March–November; monthly and quarterly billing run on 9‑month cycles. <a href="#">Learn more</a></div>
+        <div class="faq-a">Annual (per year): $199 / $249 / $299 / $349 for 1/2/3/4 bins. Monthly: $33 / $39 / $45 / $50 per month. Quarterly: $94 / $124 / $149 / $164 per quarter. Month to month March–November; monthly and quarterly billing run on 9‑month cycles. <a href="#">Learn more</a></div>
       </div>
 
       <div class="faq-item">
@@ -2431,7 +2431,7 @@ head.appendChild(script);
           Do you offer quarterly?
           <span class="faq-icon">▾</span>
         </button>
-        <div class="faq-a">Yes — $125 (2 bins), $155 (3), or $185 (4) per quarter, billed every 9 months. <a href="#">Learn more</a></div>
+        <div class="faq-a">Yes — $94 (1 bin), $124 (2), $149 (3), or $164 (4) per quarter, billed every 9 months. <a href="#">Learn more</a></div>
       </div>
 
     </div>
@@ -2486,7 +2486,7 @@ head.appendChild(script);
           </div>
           <span class="zip-verified-badge" id="modal-zip-badge" style="display:none">ZIP verified</span>
         </div>
-        <div class="modal-summary-price" id="modal-plan-price" aria-live="polite" aria-atomic="true">Annual $250/yr billed today.</div>
+        <div class="modal-summary-price" id="modal-plan-price" aria-live="polite" aria-atomic="true">Annual $199/yr billed today.</div>
       </div>
     </div>
     <div class="modal-body">
@@ -2632,12 +2632,12 @@ const SERVICE_ZIPS = new Set([
   '48382','48383','48386','48390','48391','48393','48442','48462'
 ]);
 
-/* ── PRICING (bins = cans): $250/yr per bin, $39/mo per bin (totals = rate × bin count) ── */
+/* ── PRICING (bins = cans): tier totals by bin count; 1-bin tier inferred (not on v2 rate card) ── */
 const PRICING = {
-  1: { annual:250, monthly:39 },
-  2: { annual:500, monthly:78 },
-  3: { annual:750, monthly:117 },
-  4: { annual:1000, monthly:156 }
+  1: { annual: 199, monthly: 33 },
+  2: { annual: 249, monthly: 39 },
+  3: { annual: 299, monthly: 45 },
+  4: { annual: 349, monthly: 50 }
 };
 
 let selectedBins = 1;
@@ -2735,8 +2735,7 @@ function selectPlan(plan) {
 /* ── PRICING UPDATE ── */
 function updatePricing() {
   const p = PRICING[selectedBins];
-  var perY = 250;
-  var perM = 39;
+  var binWord = selectedBins === 1 ? 'bin' : 'bins';
 
   var ab = document.getElementById('annual-price-big');
   var mb = document.getElementById('monthly-price-big');
@@ -2750,20 +2749,10 @@ function updatePricing() {
   var apl = document.getElementById('annual-per-bin-line');
   var mpl = document.getElementById('monthly-per-bin-line');
   if (apl) {
-    apl.textContent =
-      '$' +
-      perY +
-      ' per bin × ' +
-      selectedBins +
-      (selectedBins === 1 ? ' bin' : ' bins');
+    apl.textContent = 'Plan total for ' + selectedBins + ' ' + binWord + ' · one payment per year';
   }
   if (mpl) {
-    mpl.textContent =
-      '$' +
-      perM +
-      ' per month per bin × ' +
-      selectedBins +
-      (selectedBins === 1 ? ' bin' : ' bins');
+    mpl.textContent = 'Plan total for ' + selectedBins + ' ' + binWord + ' · billed monthly';
   }
 
   persistCheckoutContext();
