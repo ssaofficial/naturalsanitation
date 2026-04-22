@@ -9,6 +9,7 @@
  *   __NS_META_PIXEL_ID, __NS_CAPI_URL
  *   __NS_META_TEST_EVENT_CODE — e.g. TEST28089; forwarded to the Worker as test_event_code (Meta Test Events stream).
  *     Remove or empty for production once CAPI is verified.
+ *   __NS_DEBUG_CAPI — set true to console.log successful CAPI responses (event name + body snippet).
  */
 (function (global) {
   'use strict';
@@ -209,10 +210,32 @@
     }
     fetch(CAPI_URL, {
       method: 'POST',
+      mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       keepalive: true
-    }).catch(function () {});
+    })
+      .then(function (res) {
+        return res.text().then(function (txt) {
+          if (!res.ok) {
+            console.warn(
+              '[NSTracking] CAPI failed',
+              eventName,
+              res.status,
+              (txt || '').slice(0, 800)
+            );
+          } else if (global.__NS_DEBUG_CAPI) {
+            console.log('[NSTracking] CAPI ok', eventName, (txt || '').slice(0, 400));
+          }
+        });
+      })
+      .catch(function (err) {
+        console.warn(
+          '[NSTracking] CAPI network error',
+          eventName,
+          err && err.message ? err.message : String(err)
+        );
+      });
   }
 
   /** Optional 5th arg overrideMetaEventId: when set, used as Pixel eventID and CAPI event_id (Purchase = Stripe pi_*). */
