@@ -516,6 +516,168 @@ const PRICE_IDS = {
 const NS_PAYMENT_ORIGIN = 'https://ns-payment.increase-roas.workers.dev';
 const GHL_LEAD_PROXY_URL = NS_PAYMENT_ORIGIN + '/ghl-lead';
 
+var __checkoutGhlPartialTimer = null;
+var __checkoutGhlPartialLastHash = '';
+
+function checkoutDigitsOnly(s) {
+  return String(s || '').replace(/\D/g, '');
+}
+
+function checkoutPhoneToE164US(raw) {
+  var d = checkoutDigitsOnly(raw);
+  if (d.length === 10) return '+1' + d;
+  if (d.length === 11 && d.charAt(0) === '1') return '+' + d;
+  return d.length >= 10 ? '+' + d : '';
+}
+
+function checkoutFirstTokenName(s) {
+  var t = String(s || '').trim();
+  if (!t) return '';
+  return t.split(/\s+/)[0] || '';
+}
+
+function checkoutHyrosIdFromCookie() {
+  try {
+    var parts = ('; ' + document.cookie).split('; ');
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      var eq = p.indexOf('=');
+      var name = eq >= 0 ? p.slice(0, eq) : p;
+      if (/hyros|click_id|_ha/i.test(name)) {
+        return decodeURIComponent(eq >= 0 ? p.slice(eq + 1) : '') || '';
+      }
+    }
+  } catch (eH) {}
+  return '';
+}
+
+function checkoutGetFunnelEventId() {
+  if (window.NSTracking && typeof NSTracking.journeyId === 'function') {
+    var j = NSTracking.journeyId();
+    if (j) return String(j);
+  }
+  try {
+    var ls = localStorage.getItem('ns_funnel_event_id');
+    if (ls) return ls;
+  } catch (eLs) {}
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return 'checkout_' + String(Date.now());
+}
+
+function getCheckoutServiceZipDigits() {
+  var bzEl = document.getElementById('billing-zip');
+  var bz = bzEl ? checkoutDigitsOnly(bzEl.value).slice(0, 5) : '';
+  if (bz.length === 5) return bz;
+  return checkoutDigitsOnly(urlZip).slice(0, 5);
+}
+
+function postCheckoutGhlPartialToWorker(body) {
+  if (!GHL_LEAD_PROXY_URL || !/^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    return;
+  }
+  var h = JSON.stringify(body);
+  if (h === __checkoutGhlPartialLastHash) {
+    console.log('[checkout GHL partial] skip duplicate payload');
+    return;
+  }
+  __checkoutGhlPartialLastHash = h;
+  console.log('[checkout GHL partial] sending /ghl-lead', {
+    source: body.source,
+    type: body.type,
+    phoneLast4: checkoutDigitsOnly(body.phone || body.phone_e164 || '').slice(-4)
+  });
+  fetch(GHL_LEAD_PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: h })
+    .then(function (res) {
+      console.log('[checkout GHL partial] response status', res.status);
+      return res.text();
+    })
+    .then(function (txt) {
+      console.log('[checkout GHL partial] response body', (txt || '').slice(0, 500));
+    })
+    .catch(function (err) {
+      console.warn('[checkout GHL partial] fetch error', err && err.message ? err.message : err);
+      __checkoutGhlPartialLastHash = '';
+    });
+}
+
+function scheduleCheckoutGhlPartialLead() {
+  if (__checkoutGhlPartialTimer) {
+    clearTimeout(__checkoutGhlPartialTimer);
+  }
+  __checkoutGhlPartialTimer = setTimeout(fireCheckoutGhlPartialLeadIfReady, 800);
+}
+
+function fireCheckoutGhlPartialLeadIfReady() {
+  __checkoutGhlPartialTimer = null;
+  var fe = document.getElementById('first-name');
+  var le = document.getElementById('last-name');
+  var phEl = document.getElementById('phone');
+  if (!fe || !le || !phEl) {
+    return;
+  }
+  var fn = String(fe.value || '').trim();
+  var ln = String(le.value || '').trim();
+  var phone = String(phEl.value || '').trim();
+  var fullName = (fn + ' ' + ln).trim();
+  if (!fullName || !phone) {
+    return;
+  }
+  if (checkoutDigitsOnly(phone).length < 10) {
+    return;
+  }
+  var phoneE164 = checkoutPhoneToE164US(phone) || phone;
+  var eventId = checkoutGetFunnelEventId();
+  var body = {
+    type: 'lead_checkout_partial',
+    name: fullName,
+    first_name: checkoutFirstTokenName(fn) || checkoutFirstTokenName(fullName),
+    full_name: fullName,
+    phone: phone,
+    phone_e164: phoneE164,
+    service_zip: getCheckoutServiceZipDigits(),
+    plan: selectedPlan,
+    bins: selectedBins,
+    price: getCheckoutChargeDollars(),
+    source: 'checkout-direct-partial',
+    status: 'partial_lead',
+    tags: ['partial_lead'],
+    event_id: eventId,
+    jobber_event_id: eventId,
+    hyros_id: checkoutHyrosIdFromCookie()
+  };
+  postCheckoutGhlPartialToWorker(body);
+}
+
+function fireCheckoutGhlPartialFromWallet(payerName, payerPhone) {
+  var fullName = String(payerName || '').trim();
+  var phone = String(payerPhone || '').trim();
+  if (!fullName || !phone || checkoutDigitsOnly(phone).length < 10) {
+    return;
+  }
+  var parts = fullName.split(/\s+/).filter(Boolean);
+  var fn = parts[0] || fullName;
+  var eventId = checkoutGetFunnelEventId();
+  var body = {
+    type: 'lead_checkout_partial',
+    name: fullName,
+    first_name: checkoutFirstTokenName(fn),
+    full_name: fullName,
+    phone: phone,
+    phone_e164: checkoutPhoneToE164US(phone) || phone,
+    service_zip: getCheckoutServiceZipDigits(),
+    plan: selectedPlan,
+    bins: selectedBins,
+    price: getCheckoutChargeDollars(),
+    source: 'checkout-direct-partial',
+    status: 'partial_lead',
+    tags: ['partial_lead'],
+    event_id: eventId,
+    jobber_event_id: eventId,
+    hyros_id: checkoutHyrosIdFromCookie()
+  };
+  postCheckoutGhlPartialToWorker(body);
+}
+
 /* ── READ URL PARAMS (tiers must match index.html PRICING) ── */
 const TIER = {
   annual: { 1: 199, 2: 250, 3: 299, 4: 349 },
@@ -565,6 +727,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     NSTracking.hydrateHiddenFields();
   }
+  ['first-name', 'last-name', 'phone'].forEach(function (fid) {
+    var el = document.getElementById(fid);
+    if (el) {
+      el.addEventListener('blur', scheduleCheckoutGhlPartialLead);
+      el.addEventListener('input', scheduleCheckoutGhlPartialLead);
+    }
+  });
+  window.setTimeout(function () {
+    fireCheckoutGhlPartialLeadIfReady();
+  }, 0);
 });
 
 (function fillCheckoutNameFromPreviousStep() {
@@ -762,6 +934,7 @@ paymentRequest.canMakePayment().then(result => {
 paymentRequest.on('paymentmethod', async (ev) => {
   showProcessing(true);
   try {
+    fireCheckoutGhlPartialFromWallet(ev.payerName, ev.payerPhone);
     const res = await fetch('https://ns-payment.increase-roas.workers.dev/create-payment-intent', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -824,6 +997,8 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
   if (!phone)     { showError('phone','Required'); valid=false; }
   if (!address)   { showError('address','Required'); valid=false; }
   if (!valid) return;
+
+  fireCheckoutGhlPartialLeadIfReady();
 
   showProcessing(true);
   document.getElementById('submit-btn').disabled = true;

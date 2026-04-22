@@ -218,6 +218,131 @@
     };
   }
 
+  var __v2GhlPartialTimer = null;
+  var __v2GhlPartialLastHash = '';
+
+  function v2DigitsOnly(s) {
+    return String(s || '').replace(/\D/g, '');
+  }
+
+  function v2PhoneToE164US(raw) {
+    var d = v2DigitsOnly(raw);
+    if (d.length === 10) return '+1' + d;
+    if (d.length === 11 && d.charAt(0) === '1') return '+' + d;
+    return d.length >= 10 ? '+' + d : '';
+  }
+
+  function v2HyrosIdFromCookie() {
+    try {
+      var parts = ('; ' + document.cookie).split('; ');
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        var eq = p.indexOf('=');
+        var name = eq >= 0 ? p.slice(0, eq) : p;
+        if (/hyros|click_id|_ha/i.test(name)) {
+          return decodeURIComponent(eq >= 0 ? p.slice(eq + 1) : '') || '';
+        }
+      }
+    } catch (eH) {}
+    return '';
+  }
+
+  function postV2CheckoutGhlPartial(body) {
+    if (!GHL_LEAD_PROXY_URL || !/^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+      return;
+    }
+    var h = JSON.stringify(body);
+    if (h === __v2GhlPartialLastHash) {
+      console.log('[checkout-v2 GHL partial] skip duplicate payload');
+      return;
+    }
+    __v2GhlPartialLastHash = h;
+    console.log('[checkout-v2 GHL partial] sending /ghl-lead', {
+      source: body.source,
+      type: body.type,
+      phoneLast4: v2DigitsOnly(body.phone || body.phone_e164 || '').slice(-4),
+    });
+    fetch(GHL_LEAD_PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: h })
+      .then(function (res) {
+        console.log('[checkout-v2 GHL partial] response status', res.status);
+        return res.text();
+      })
+      .then(function (txt) {
+        console.log('[checkout-v2 GHL partial] response body', (txt || '').slice(0, 500));
+      })
+      .catch(function (err) {
+        console.warn('[checkout-v2 GHL partial] fetch error', err && err.message ? err.message : err);
+        __v2GhlPartialLastHash = '';
+      });
+  }
+
+  function scheduleV2GhlPartial() {
+    if (__v2GhlPartialTimer) {
+      clearTimeout(__v2GhlPartialTimer);
+    }
+    __v2GhlPartialTimer = setTimeout(fireV2GhlPartialIfReady, 800);
+  }
+
+  function fireV2GhlPartialIfReady() {
+    __v2GhlPartialTimer = null;
+    var nameEl = document.getElementById('pay-name');
+    var phEl = document.getElementById('pay-phone');
+    var fullName = ((nameEl && nameEl.value) || draft.fullName || '').trim();
+    var phone = ((phEl && phEl.value) || draft.phone || '').trim();
+    if (!fullName || !phone || v2DigitsOnly(phone).length < 10) {
+      return;
+    }
+    var phoneE164 = v2PhoneToE164US(phone) || phone;
+    var zipDigits = String(draft.zip || '').replace(/\D/g, '').slice(0, 5);
+    var body = {
+      type: 'lead_checkout_v2_partial',
+      name: fullName,
+      first_name: firstNameFromFull(fullName),
+      full_name: fullName,
+      phone: phone,
+      phone_e164: phoneE164,
+      service_zip: zipDigits,
+      plan: draft.plan,
+      bins: draft.bins,
+      price: getChargeDollars(),
+      source: 'checkout-v2-direct-partial',
+      status: 'partial_lead',
+      tags: ['partial_lead'],
+      event_id: SESSION_EVENT_ID,
+      jobber_event_id: SESSION_EVENT_ID,
+      hyros_id: v2HyrosIdFromCookie(),
+    };
+    postV2CheckoutGhlPartial(body);
+  }
+
+  function fireV2GhlPartialFromWallet(payerName, payerPhone) {
+    var fullName = String(payerName || '').trim();
+    var phone = String(payerPhone || '').trim();
+    if (!fullName || !phone || v2DigitsOnly(phone).length < 10) {
+      return;
+    }
+    var zipDigits = String(draft.zip || '').replace(/\D/g, '').slice(0, 5);
+    var body = {
+      type: 'lead_checkout_v2_partial',
+      name: fullName,
+      first_name: firstNameFromFull(fullName),
+      full_name: fullName,
+      phone: phone,
+      phone_e164: v2PhoneToE164US(phone) || phone,
+      service_zip: zipDigits,
+      plan: draft.plan,
+      bins: draft.bins,
+      price: getChargeDollars(),
+      source: 'checkout-v2-direct-partial',
+      status: 'partial_lead',
+      tags: ['partial_lead'],
+      event_id: SESSION_EVENT_ID,
+      jobber_event_id: SESSION_EVENT_ID,
+      hyros_id: v2HyrosIdFromCookie(),
+    };
+    postV2CheckoutGhlPartial(body);
+  }
+
   function isStripePi(id) {
     return typeof id === 'string' && id.indexOf('pi_') === 0;
   }
@@ -304,6 +429,7 @@
     var processing = document.getElementById('processing');
     var secret = null;
     processing.classList.add('show');
+    fireV2GhlPartialFromWallet(ev.payerName, ev.payerPhone);
     fetch(PAYMENT_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -395,6 +521,7 @@
       }
       mountStripe();
       if (!stripeState.cardNumber) return alert('Card form not ready — try again');
+      fireV2GhlPartialIfReady();
       var processing = document.getElementById('processing');
       var clientSecret = null;
       processing.classList.add('show');
@@ -480,5 +607,13 @@
     wirePlanBins();
     mountStripe();
     wirePay();
+    var v2ph = document.getElementById('pay-phone');
+    if (v2ph) {
+      v2ph.addEventListener('blur', scheduleV2GhlPartial);
+      v2ph.addEventListener('input', scheduleV2GhlPartial);
+    }
+    window.setTimeout(function () {
+      fireV2GhlPartialIfReady();
+    }, 0);
   }
 })();
