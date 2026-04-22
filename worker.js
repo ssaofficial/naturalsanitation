@@ -135,100 +135,116 @@ function ghlBuildSource(body) {
 }
 
 async function handleGhlLead(request, env) {
-  const token = env.GHL_API_TOKEN;
-  const locId = env.GHL_LOCATION_ID;
-  if (!token || typeof token !== 'string' || !locId || typeof locId !== 'string') {
-    return json({ error: 'GHL_API_TOKEN or GHL_LOCATION_ID not configured' }, 503, corsHeaders());
-  }
-  const raw = await request.text();
-  if (raw.length > GHL_FORWARD_MAX_BYTES) {
-    return json({ error: 'Payload too large' }, 413, corsHeaders());
-  }
-  let parsed;
   try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return json({ error: 'Invalid JSON' }, 400, corsHeaders());
-  }
-  if (!parsed || typeof parsed !== 'object') {
-    return json({ error: 'Invalid body' }, 400, corsHeaders());
-  }
-  const phone = ghlNormalizedPhone(parsed);
-  if (!phone) {
-    return json({ error: 'Missing or invalid phone' }, 400, corsHeaders());
-  }
-  const phoneLast4 = ghlDigitsOnly(phone).slice(-4);
-  console.log('[ghl-lead] received', {
-    source: String(parsed.source || '').slice(0, 80),
-    type: String(parsed.type || '').slice(0, 64),
-    phoneLast4,
-  });
-  const { firstName, lastName, name } = ghlBuildNameParts(parsed);
-  const tags = ghlMergeTags(parsed);
-  const source = ghlBuildSource(parsed);
-  const upsertBody = {
-    locationId: String(locId).trim(),
-    phone,
-    name: name.slice(0, 500),
-    firstName: firstName.slice(0, 100),
-    lastName: (lastName || '').slice(0, 100),
-    tags,
-    source,
-    country: 'US',
-  };
-  const em = parsed.email;
-  if (em && typeof em === 'string' && em.includes('@')) {
-    upsertBody.email = em.trim().slice(0, 250);
-  }
-  const zip = parsed.service_zip || parsed.zip;
-  if (zip != null && String(zip).trim()) {
-    upsertBody.postalCode = String(zip).trim().slice(0, 20);
-  }
-  if (Array.isArray(parsed.ghl_custom_fields) && parsed.ghl_custom_fields.length) {
-    upsertBody.customFields = parsed.ghl_custom_fields
-      .filter((f) => f && typeof f === 'object' && typeof f.id === 'string')
-      .map((f) => {
-        const v =
-          f.field_value != null
-            ? String(f.field_value)
-            : f.value != null
-              ? String(f.value)
-              : '';
-        return { id: f.id, field_value: v.slice(0, 2000) };
-      })
-      .slice(0, 50);
-  }
-  const ghlRes = await fetch(GHL_API_BASE + '/contacts/upsert', {
-    method: 'POST',
-    headers: ghlAuthHeaders(token),
-    body: JSON.stringify(upsertBody),
-  });
-  const ghlText = await ghlRes.text();
-  let ghlJson;
-  try {
-    ghlJson = ghlText ? JSON.parse(ghlText) : {};
-  } catch {
-    ghlJson = { raw: (ghlText || '').slice(0, 400) };
-  }
-  if (!ghlRes.ok) {
-    console.warn('[ghl-lead] contact upsert failed', ghlRes.status, (ghlText || '').slice(0, 500));
+    console.log('[ghl-lead] start');
+    const token = env.GHL_API_TOKEN;
+    const locId = env.GHL_LOCATION_ID;
+    if (!token || typeof token !== 'string' || !locId || typeof locId !== 'string') {
+      return json({ ok: false, error: 'GHL_API_TOKEN or GHL_LOCATION_ID not configured' }, 503, corsHeaders());
+    }
+    console.log('[ghl-lead] env ok');
+    const raw = await request.text();
+    if (raw.length > GHL_FORWARD_MAX_BYTES) {
+      return json({ ok: false, error: 'Payload too large' }, 413, corsHeaders());
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return json({ ok: false, error: 'Invalid JSON' }, 400, corsHeaders());
+    }
+    if (!parsed || typeof parsed !== 'object') {
+      return json({ ok: false, error: 'Invalid body' }, 400, corsHeaders());
+    }
+    console.log('[ghl-lead] parsed ok');
+    const phone = ghlNormalizedPhone(parsed);
+    if (!phone) {
+      return json({ ok: false, error: 'Missing or invalid phone' }, 400, corsHeaders());
+    }
+    console.log('[ghl-lead] phone ok');
+    const { firstName, lastName, name } = ghlBuildNameParts(parsed);
+    const tags = ghlMergeTags(parsed);
+    const source = ghlBuildSource(parsed);
+    const upsertBody = {
+      locationId: String(locId).trim(),
+      phone,
+      name: name.slice(0, 500),
+      firstName: firstName.slice(0, 100),
+      lastName: (lastName || '').slice(0, 100),
+      tags,
+      source,
+      country: 'US',
+    };
+    const em = parsed.email;
+    if (em && typeof em === 'string' && em.includes('@')) {
+      upsertBody.email = em.trim().slice(0, 250);
+    }
+    const zip = parsed.service_zip || parsed.zip;
+    if (zip != null && String(zip).trim()) {
+      upsertBody.postalCode = String(zip).trim().slice(0, 20);
+    }
+    if (Array.isArray(parsed.ghl_custom_fields) && parsed.ghl_custom_fields.length) {
+      upsertBody.customFields = parsed.ghl_custom_fields
+        .filter((f) => f && typeof f === 'object' && typeof f.id === 'string')
+        .map((f) => {
+          const v =
+            f.field_value != null
+              ? String(f.field_value)
+              : f.value != null
+                ? String(f.value)
+                : '';
+          return { id: f.id, field_value: v.slice(0, 2000) };
+        })
+        .slice(0, 50);
+    }
+    const upsertUrl = GHL_API_BASE + '/contacts/upsert';
+    console.log('[ghl-lead] sending upsert', upsertUrl);
+    const ghlRes = await fetch(upsertUrl, {
+      method: 'POST',
+      headers: ghlAuthHeaders(token),
+      body: JSON.stringify(upsertBody),
+    });
+    const ghlText = await ghlRes.text();
+    console.log('[ghl-lead] ghl status', ghlRes.status, (ghlText || '').slice(0, 8000));
+    let ghlJson;
+    try {
+      ghlJson = ghlText ? JSON.parse(ghlText) : {};
+    } catch {
+      ghlJson = { raw: (ghlText || '').slice(0, 400) };
+    }
+    if (!ghlRes.ok) {
+      return json(
+        {
+          ok: false,
+          error: 'GHL contact upsert failed',
+          status: ghlRes.status,
+          details: typeof ghlJson === 'object' ? ghlJson : {},
+        },
+        502,
+        corsHeaders()
+      );
+    }
+    const contactId =
+      (ghlJson && ghlJson.contact && ghlJson.contact.id) ||
+      (ghlJson && ghlJson.id) ||
+      (ghlJson && ghlJson.contactId);
+    console.log('[ghl-lead] success', contactId ? { contactId: String(contactId).slice(0, 32) } : {});
+    return json({ ok: true, contactId: contactId || undefined }, 200, corsHeaders());
+  } catch (e) {
+    const msg = e && e.message ? String(e.message) : String(e);
+    const stack = e && e.stack ? String(e.stack) : '';
+    console.error('[ghl-lead] caught error', msg, stack);
     return json(
       {
         ok: false,
-        error: 'GHL contact upsert failed',
-        status: ghlRes.status,
-        details: typeof ghlJson === 'object' ? ghlJson : {},
+        error: 'ghl-lead exception',
+        message: msg,
+        stack: stack.slice(0, 2000),
       },
-      502,
+      500,
       corsHeaders()
     );
   }
-  const contactId =
-    (ghlJson && ghlJson.contact && ghlJson.contact.id) ||
-    (ghlJson && ghlJson.id) ||
-    (ghlJson && ghlJson.contactId);
-  console.log('[ghl-lead] contact upsert ok', contactId ? { contactId: String(contactId).slice(0, 24) } : {});
-  return json({ ok: true, contactId: contactId || undefined }, 200, corsHeaders());
 }
 
 /** Authoritative tier totals (cents) — must match checkout.html / index PRICING. */
