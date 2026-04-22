@@ -32,6 +32,13 @@ script.type = 'text/javascript';
 script.src = "https://t.naturalsanitations.com/v1/lst/universal-script?ph=5fecc4f438ca2193e96ee1cd7f0374180f426ce110a45be4dbf15f3ca233b720&tag=!clicked&ref_url=" + encodeURI(document.URL );
 head.appendChild(script);
 </script>
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "qgzs5rf7u9");
+  </script>
   <!-- ============================================================ -->
 
   <link rel="preconnect" href="https://js.stripe.com" crossorigin />
@@ -3063,8 +3070,9 @@ const SS_IDEM_CART = 'ns_idem_cart';
 const SS_IDEM_KEY = 'ns_idem_key';
 const SS_PURCHASE_PI = 'ns_purchase_pi';
 
-/* GoHighLevel — partial lead capture from checkout modal (Step 1); same webhook as checkout.html */
-const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/pit-6925afab-67ff-47f1-b732-63b00ff3d3e8/webhook-trigger/';
+/* GoHighLevel — browser posts to Worker POST /ghl-lead; Worker upserts via private Contacts API (GHL_* secrets). */
+const NS_PAYMENT_ORIGIN = 'https://ns-payment.increase-roas.workers.dev';
+const GHL_LEAD_PROXY_URL = NS_PAYMENT_ORIGIN + '/ghl-lead';
 const LS_LEAD_GATE_DONE = 'ns_lead_gate_done';
 const SMS_NOTIFY_TO = '(586) 500-6794';
 
@@ -3238,8 +3246,8 @@ function fireGateStep1ZipEligible(zipDigits) {
     consent,
     utms
   );
-  if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-    fetch(GHL_WEBHOOK_URL, {
+  if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    fetch(GHL_LEAD_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(ghlBody)
@@ -3398,8 +3406,8 @@ function fireGateStep2LeadDetail(firstName, phoneRaw, phoneE164, zipDigits) {
     consent,
     utms
   );
-  if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-    fetch(GHL_WEBHOOK_URL, {
+  if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    fetch(GHL_LEAD_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(ghlBody)
@@ -3986,8 +3994,8 @@ function fireFunnelStep1Lead(zip, phoneOpt, emailOpt) {
     },
     consent
   );
-  if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-    fetch(GHL_WEBHOOK_URL, {
+  if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    fetch(GHL_LEAD_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -4068,8 +4076,8 @@ function fireOutAreaWaitlistLead(zipDigits, phoneE164) {
     consent_method: 'modal_out_waitlist'
   };
   var z = String(zipDigits || '').replace(/\D/g, '').slice(0, 5);
-  if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-    fetch(GHL_WEBHOOK_URL, {
+  if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    fetch(GHL_LEAD_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(
@@ -4360,8 +4368,8 @@ function fireFunnelStep2Update(fullName, phoneE164, emailOpt) {
     email: emailOpt || undefined,
     service_zip: zip
   };
-  if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-    fetch(GHL_WEBHOOK_URL, {
+  if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    fetch(GHL_LEAD_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4869,7 +4877,7 @@ function scheduleModalGHLPartialLead() {
 
 function fireModalGHLPartialLeadIfReady() {
   __ghlModalLeadTimer = null;
-  if (!GHL_WEBHOOK_URL || !/^https:\/\//.test(GHL_WEBHOOK_URL)) {
+  if (!GHL_LEAD_PROXY_URL || !/^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
     return;
   }
   var nm = document.getElementById('modal-full-name');
@@ -4883,22 +4891,32 @@ function fireModalGHLPartialLeadIfReady() {
     return;
   }
   var zip = document.getElementById('zip-input').value.trim();
+  var eventId = getOrCreateFunnelEventId();
+  var phoneE164 = phoneToE164US(phone) || phone;
   var body = {
+    type: 'lead_modal_partial',
     name: name,
+    first_name: firstTokenName(name),
+    full_name: name,
     phone: phone,
+    phone_e164: phoneE164,
     plan: selectedPlan,
     bins: selectedBins,
     price: getChargeAmountDollars(),
     service_zip: zip,
     source: 'checkout-modal-partial',
-    status: 'partial_lead'
+    status: 'partial_lead',
+    tags: ['partial_lead'],
+    event_id: eventId,
+    jobber_event_id: eventId,
+    hyros_id: hyrosIdFromCookie()
   };
   var h = JSON.stringify(body);
   if (h === __ghlModalLeadLastHash) {
     return;
   }
   __ghlModalLeadLastHash = h;
-  fetch(GHL_WEBHOOK_URL, {
+  fetch(GHL_LEAD_PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: h
@@ -5293,7 +5311,7 @@ async function handleWalletPayment(ev) {
 }
 
 function fireModalGHLPurchaseSuccess() {
-  if (!GHL_WEBHOOK_URL || !/^https:\/\//.test(GHL_WEBHOOK_URL)) {
+  if (!GHL_LEAD_PROXY_URL || !/^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
     return;
   }
   var emailEl = document.getElementById('modal-email');
@@ -5321,7 +5339,7 @@ function fireModalGHLPurchaseSuccess() {
     event_id: getOrCreateFunnelEventId(),
     stripe_transaction_id: __checkoutModal.lastPurchasePiId || undefined
   };
-  fetch(GHL_WEBHOOK_URL, {
+  fetch(GHL_LEAD_PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -5919,8 +5937,7 @@ document.getElementById('zip-input').addEventListener('keydown', function(e) {
 function submitWaitlist() {
   const email = document.getElementById('waitlist-email').value.trim();
   if (!email || !/\S+@\S+\.\S+/.test(email)) return;
-  // TODO: replace GHL_WEBHOOK_URL
-  // fetch('GHL_WEBHOOK_URL', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, tags:['waitlist'], source:'landing-page' }) });
+  // TODO: wire waitlist to Worker POST /ghl-lead (same as funnel leads).
   document.getElementById('waitlist-block').innerHTML =
     '<p style="color:var(--green);font-weight:700;font-size:14px">✓ Got it. We\'ll notify you when your area goes live.</p>';
 }
@@ -6520,7 +6537,7 @@ if (window.NSTracking && NSTracking.hydrateHiddenFields) {
   NSTracking.hydrateHiddenFields();
 }
 
-/* GHL partial lead: GHL_WEBHOOK_URL + scheduleModalGHLPartialLead (Step 1). */
+/* GHL partial lead: GHL_LEAD_PROXY_URL + scheduleModalGHLPartialLead (Step 1). */
 </script>
 
 </body>

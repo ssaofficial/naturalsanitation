@@ -2,9 +2,9 @@
 (function () {
   'use strict';
 
-  var GHL_WEBHOOK_URL =
-    'https://services.leadconnectorhq.com/hooks/pit-6925afab-67ff-47f1-b732-63b00ff3d3e8/webhook-trigger/';
-  var CRM_LEAD_URL = GHL_WEBHOOK_URL;
+  var NS_PAYMENT_ORIGIN = 'https://ns-payment.increase-roas.workers.dev';
+  var GHL_LEAD_PROXY_URL = NS_PAYMENT_ORIGIN + '/ghl-lead';
+  var CRM_LEAD_URL = GHL_LEAD_PROXY_URL;
   var META_PIXEL_ID =
     (typeof window !== 'undefined' && window.__NS_META_PIXEL_ID) || '499919262310418';
   var MANNY_SMS_NUMBER = '(586) 500-6794';
@@ -419,8 +419,8 @@
           alert('Enter a valid email');
           return;
         }
-        if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-          fetch(GHL_WEBHOOK_URL, {
+        if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+          fetch(GHL_LEAD_PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -486,8 +486,8 @@
         e.preventDefault();
         var em = document.getElementById('exit-email');
         if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())) return;
-        if (GHL_WEBHOOK_URL && /^https:\/\//.test(GHL_WEBHOOK_URL)) {
-          fetch(GHL_WEBHOOK_URL, {
+        if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+          fetch(GHL_LEAD_PROXY_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

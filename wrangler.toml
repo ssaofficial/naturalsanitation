@@ -1,5 +1,8 @@
 # Deploy: wrangler login && wrangler deploy
 # Publishes worker.js as the Worker behind https://ns-payment.increase-roas.workers.dev (name must match your zone).
+#
+# Secrets (wrangler secret put …): STRIPE_SECRET_KEY, META_CAPI_ACCESS_TOKEN, GHL_API_TOKEN, GHL_LOCATION_ID
+# Optional: META_TEST_EVENT_CODE
 name = "ns-payment"
 main = "worker.js"
 compatibility_date = "2024-10-01"

@@ -30,6 +30,13 @@ script.type = 'text/javascript';
 script.src = "https://t.naturalsanitations.com/v1/lst/universal-script?ph=5fecc4f438ca2193e96ee1cd7f0374180f426ce110a45be4dbf15f3ca233b720&tag=!clicked&ref_url=" + encodeURI(document.URL );
 head.appendChild(script);
 </script>
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "qgzs5rf7u9");
+  </script>
   <!-- ============================================================ -->
 
   <style>
@@ -505,11 +512,9 @@ const PRICE_IDS = {
   monthly_4bin:   'price_1TM889HhyjMV1WTXdGMfaOib',
 };
 
-/*
-  GHL webhook — fires on successful payment to create contact in pipeline.
-  Replace GHL_WEBHOOK_URL with your actual webhook URL.
-*/
-const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/pit-6925afab-67ff-47f1-b732-63b00ff3d3e8/webhook-trigger/';
+/* GHL — POST JSON to Worker /ghl-lead; Worker upserts contact via private Contacts API (GHL_* secrets). */
+const NS_PAYMENT_ORIGIN = 'https://ns-payment.increase-roas.workers.dev';
+const GHL_LEAD_PROXY_URL = NS_PAYMENT_ORIGIN + '/ghl-lead';
 
 /* ── READ URL PARAMS (tiers must match index.html PRICING) ── */
 const TIER = {
@@ -972,9 +977,9 @@ function onSuccess({ name, email, phone, address, paymentIntentId }) {
     );
   }
 
-  // GHL webhook
-  if (GHL_WEBHOOK_URL && GHL_WEBHOOK_URL !== 'GHL_WEBHOOK_URL') {
-    fetch(GHL_WEBHOOK_URL, {
+  // GHL — worker /ghl-lead (Contacts API upsert)
+  if (GHL_LEAD_PROXY_URL && /^https:\/\//.test(GHL_LEAD_PROXY_URL)) {
+    fetch(GHL_LEAD_PROXY_URL, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({

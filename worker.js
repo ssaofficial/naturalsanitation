@@ -4,10 +4,13 @@
  * Routes:
  *   POST /create-payment-intent — Stripe PaymentIntent (env STRIPE_SECRET_KEY)
  *   POST /meta-capi — Meta Conversions API (env META_CAPI_ACCESS_TOKEN, never expose to browser)
+ *   POST /ghl-lead — GoHighLevel Contacts API upsert (env GHL_API_TOKEN, GHL_LOCATION_ID; never in browser)
  *
  * Secrets / vars (Cloudflare dashboard → Worker → Settings → Variables):
  *   STRIPE_SECRET_KEY           — required for PaymentIntents
  *   META_CAPI_ACCESS_TOKEN      — required for /meta-capi (never in the browser)
+ *   GHL_API_TOKEN               — required for /ghl-lead (private integration / sub-account token)
+ *   GHL_LOCATION_ID             — required for /ghl-lead (sub-account location id)
  *   META_TEST_EVENT_CODE        — optional, e.g. TEST28089 → Meta Graph `test_event_code` (Test Events only)
  *
  * Optional: browser may send `test_event_code` in the JSON body; the Worker forwards it only if it
@@ -36,6 +39,196 @@ function isCreatePaymentIntentPath(pathname) {
 
 function isMetaCapiPath(pathname) {
   return pathname === '/meta-capi' || pathname.endsWith('/meta-capi');
+}
+
+function isGhlLeadPath(pathname) {
+  return pathname === '/ghl-lead' || pathname.endsWith('/ghl-lead');
+}
+
+const GHL_FORWARD_MAX_BYTES = 131072;
+const GHL_API_BASE = 'https://services.leadconnectorhq.com';
+
+function ghlAuthHeaders(token) {
+  return {
+    Authorization: 'Bearer ' + token,
+    Version: '2021-07-28',
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+}
+
+function ghlDigitsOnly(s) {
+  return String(s || '').replace(/\D/g, '');
+}
+
+/** Returns E.164-style +1… when possible, or null if fewer than 10 digits. */
+function ghlNormalizedPhone(body) {
+  const d1 = ghlDigitsOnly(body.phone_e164);
+  const d2 = ghlDigitsOnly(body.phone);
+  const d = d1.length >= 10 ? d1 : d2;
+  if (d.length < 10) return null;
+  let n = d;
+  if (n.length === 10) n = '1' + n;
+  if (n.length === 11 && n[0] === '1') return '+' + n;
+  return '+' + n;
+}
+
+function ghlBuildNameParts(body) {
+  const full = String(body.full_name || body.name || '').trim();
+  const firstPref = String(body.first_name || '').trim();
+  if (full) {
+    const bits = full.split(/\s+/).filter(Boolean);
+    const fn = (firstPref || bits[0] || '').trim();
+    const ln = bits.length > 1 ? bits.slice(1).join(' ') : '';
+    return {
+      firstName: fn || full.slice(0, 100),
+      lastName: ln,
+      name: full,
+    };
+  }
+  if (firstPref) {
+    return { firstName: firstPref, lastName: '', name: firstPref };
+  }
+  return { firstName: 'Customer', lastName: '', name: 'Customer' };
+}
+
+function ghlMergeTags(body) {
+  const seen = new Set();
+  const out = [];
+  if (Array.isArray(body.tags)) {
+    for (const t of body.tags) {
+      const s = typeof t === 'string' ? t.trim() : '';
+      if (s && !seen.has(s)) {
+        seen.add(s);
+        out.push(s);
+      }
+    }
+  }
+  if (!seen.has('partial_lead')) {
+    out.push('partial_lead');
+  }
+  return out;
+}
+
+function ghlBuildSource(body) {
+  let base = String(body.source || 'ns-funnel').trim() || 'ns-funnel';
+  if (body.status != null && body.status !== '') {
+    base = (base + ' · status:' + String(body.status).slice(0, 64)).slice(0, 255);
+  }
+  const ev = body.event_id || body.jobber_event_id;
+  if (ev) {
+    base = (base + ' · event:' + String(ev).slice(0, 80)).slice(0, 255);
+  }
+  if (body.hyros_id) {
+    base = (base + ' · hyros:' + String(body.hyros_id).slice(0, 40)).slice(0, 255);
+  }
+  const consentBits = [];
+  for (const [k, v] of Object.entries(body)) {
+    if (v === undefined || v === null || typeof v === 'object') continue;
+    if (!/consent|tcpa|opt.?in|sms_legal|gdpr|legal/i.test(k)) continue;
+    consentBits.push(k + '=' + String(v).slice(0, 48));
+  }
+  if (consentBits.length) {
+    base = (base + ' · ' + consentBits.join('&')).slice(0, 255);
+  }
+  return base.slice(0, 255);
+}
+
+async function handleGhlLead(request, env) {
+  const token = env.GHL_API_TOKEN;
+  const locId = env.GHL_LOCATION_ID;
+  if (!token || typeof token !== 'string' || !locId || typeof locId !== 'string') {
+    return json({ error: 'GHL_API_TOKEN or GHL_LOCATION_ID not configured' }, 503, corsHeaders());
+  }
+  const raw = await request.text();
+  if (raw.length > GHL_FORWARD_MAX_BYTES) {
+    return json({ error: 'Payload too large' }, 413, corsHeaders());
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return json({ error: 'Invalid JSON' }, 400, corsHeaders());
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    return json({ error: 'Invalid body' }, 400, corsHeaders());
+  }
+  const phone = ghlNormalizedPhone(parsed);
+  if (!phone) {
+    return json({ error: 'Missing or invalid phone' }, 400, corsHeaders());
+  }
+  const phoneLast4 = ghlDigitsOnly(phone).slice(-4);
+  console.log('[ghl-lead] received', {
+    source: String(parsed.source || '').slice(0, 80),
+    type: String(parsed.type || '').slice(0, 64),
+    phoneLast4,
+  });
+  const { firstName, lastName, name } = ghlBuildNameParts(parsed);
+  const tags = ghlMergeTags(parsed);
+  const source = ghlBuildSource(parsed);
+  const upsertBody = {
+    locationId: String(locId).trim(),
+    phone,
+    name: name.slice(0, 500),
+    firstName: firstName.slice(0, 100),
+    lastName: (lastName || '').slice(0, 100),
+    tags,
+    source,
+    country: 'US',
+  };
+  const em = parsed.email;
+  if (em && typeof em === 'string' && em.includes('@')) {
+    upsertBody.email = em.trim().slice(0, 250);
+  }
+  const zip = parsed.service_zip || parsed.zip;
+  if (zip != null && String(zip).trim()) {
+    upsertBody.postalCode = String(zip).trim().slice(0, 20);
+  }
+  if (Array.isArray(parsed.ghl_custom_fields) && parsed.ghl_custom_fields.length) {
+    upsertBody.customFields = parsed.ghl_custom_fields
+      .filter((f) => f && typeof f === 'object' && typeof f.id === 'string')
+      .map((f) => {
+        const v =
+          f.field_value != null
+            ? String(f.field_value)
+            : f.value != null
+              ? String(f.value)
+              : '';
+        return { id: f.id, field_value: v.slice(0, 2000) };
+      })
+      .slice(0, 50);
+  }
+  const ghlRes = await fetch(GHL_API_BASE + '/contacts/upsert', {
+    method: 'POST',
+    headers: ghlAuthHeaders(token),
+    body: JSON.stringify(upsertBody),
+  });
+  const ghlText = await ghlRes.text();
+  let ghlJson;
+  try {
+    ghlJson = ghlText ? JSON.parse(ghlText) : {};
+  } catch {
+    ghlJson = { raw: (ghlText || '').slice(0, 400) };
+  }
+  if (!ghlRes.ok) {
+    console.warn('[ghl-lead] contact upsert failed', ghlRes.status, (ghlText || '').slice(0, 500));
+    return json(
+      {
+        ok: false,
+        error: 'GHL contact upsert failed',
+        status: ghlRes.status,
+        details: typeof ghlJson === 'object' ? ghlJson : {},
+      },
+      502,
+      corsHeaders()
+    );
+  }
+  const contactId =
+    (ghlJson && ghlJson.contact && ghlJson.contact.id) ||
+    (ghlJson && ghlJson.id) ||
+    (ghlJson && ghlJson.contactId);
+  console.log('[ghl-lead] contact upsert ok', contactId ? { contactId: String(contactId).slice(0, 24) } : {});
+  return json({ ok: true, contactId: contactId || undefined }, 200, corsHeaders());
 }
 
 /** Authoritative tier totals (cents) — must match checkout.html / index PRICING. */
@@ -237,6 +430,10 @@ export default {
 
     if (isMetaCapiPath(url.pathname)) {
       return handleMetaCapi(request, env);
+    }
+
+    if (isGhlLeadPath(url.pathname)) {
+      return handleGhlLead(request, env);
     }
 
     if (!isCreatePaymentIntentPath(url.pathname)) {
